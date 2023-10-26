@@ -74,16 +74,19 @@
     "@types/vscode": "^1.44.0",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
+    "@vscode/vsce": "^2.21.1",
     "cross-env": "^7.0.2",
     "electron-rebuild": "^1.11.0",
     "esbuild": "^0.15.10",
     "eslint": "^7.6.0",
     "glob": "^7.1.7",
     "mocha": "^8.0.1",
+    "ts-loader": "^9.5.0",
     "typescript": "^4.4.3",
     "vscode-test": "^1.4.0",
     "vscode-uri": "^3.0.2",
-    "webpack": "^5.82.1"
+    "webpack": "^5.82.1",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "vscode-languageclient": "^8.0.2"
