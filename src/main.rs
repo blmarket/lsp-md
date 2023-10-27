@@ -82,10 +82,12 @@ impl LanguageServer for Backend {
                 definition_provider: Some(OneOf::Left(true)),
                 references_provider: Some(OneOf::Left(true)),
                 rename_provider: Some(OneOf::Left(true)),
+                code_lens_provider: Some(CodeLensOptions { resolve_provider: Some(true) }),
                 ..ServerCapabilities::default()
             },
         })
     }
+
     async fn initialized(&self, _: InitializedParams) {
         self.client
             .log_message(MessageType::INFO, "initialized!")
@@ -134,7 +136,9 @@ impl LanguageServer for Backend {
     ) -> Result<Option<GotoDefinitionResponse>> {
         let definition = async {
             let uri = params.text_document_position_params.text_document.uri;
+            dbg!(&uri);
             let ast = self.ast_map.get(uri.as_str())?;
+            dbg!(&ast);
             let rope = self.document_map.get(uri.as_str())?;
 
             let position = params.text_document_position_params.position;
@@ -458,7 +462,32 @@ impl LanguageServer for Backend {
 
         Ok(None)
     }
+
+    async fn code_lens(&self, params: CodeLensParams) -> Result<Option<Vec<CodeLens>>> {
+        let uri = params.text_document.uri;
+
+        let code_lenses = vec![CodeLens {
+            range: Range {
+                start: Position {
+                    line: 4,
+                    character: 0,
+                },
+                end: Position {
+                    line: 4,
+                    character: 0,
+                },
+            },
+            command: Some(Command {
+                title: "Search similar documents".to_string(),
+                command: "dummy.do_something".to_string(),
+                arguments: Some(vec![Value::String(uri.to_string())]),
+            }),
+            data: None,
+        }];
+        Ok(Some(code_lenses))
+    }
 }
+
 #[derive(Debug, Deserialize, Serialize)]
 struct InlayHintParams {
     path: String,
