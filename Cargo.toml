@@ -17,4 +17,5 @@ dashmap = "5.1.0"
 log = "0.4.14"
 im-rc = "15.0.0"
 
-
+[dev-dependencies]
+anyhow = "1"
