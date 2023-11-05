@@ -16,8 +16,8 @@ use tower_lsp::{Client, LanguageServer};
 
 #[derive(Debug)]
 pub struct Backend {
-    pub client: Client,
-    pub document_map: DashMap<String, Rope>,
+    client: Client,
+    document_map: DashMap<String, Rope>,
 }
 
 #[tower_lsp::async_trait]
