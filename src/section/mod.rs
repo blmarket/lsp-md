@@ -9,7 +9,7 @@ pub struct Sections {
 }
 
 impl Sections {
-    pub fn new(sections: Vec<Range<usize>>, document: String) -> Self {
+    fn new(sections: Vec<Range<usize>>, document: String) -> Self {
         Self { sections, document }
     }
 
