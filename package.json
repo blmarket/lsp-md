@@ -16,18 +16,10 @@
   },
   "enabledApiProposals": [],
   "activationEvents": [
-    "onLanguage:nrs"
+    "onLanguage:markdown"
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "languages": [
-      {
-        "id": "nrs",
-        "extensions": [
-          ".nrs"
-        ]
-      }
-    ],
     "configuration": {
       "type": "object",
       "title": "nrs-language-server",
