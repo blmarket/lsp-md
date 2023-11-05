@@ -1,13 +1,4 @@
-use std::collections::HashMap;
-
 use dashmap::DashMap;
-use nrs_language_server::chumsky::{
-    parse, type_inference, Func, ImCompleteSemanticToken, ParserResult,
-};
-use nrs_language_server::completion::completion;
-use nrs_language_server::jump_definition::get_definition;
-use nrs_language_server::reference::get_reference;
-use nrs_language_server::semantic_token::{semantic_token_from_ast, LEGEND_TYPE};
 use ropey::Rope;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -19,9 +10,7 @@ use tower_lsp::{Client, LanguageServer, LspService, Server};
 #[derive(Debug)]
 struct Backend {
     client: Client,
-    ast_map: DashMap<String, HashMap<String, Func>>,
     document_map: DashMap<String, Rope>,
-    semantic_token_map: DashMap<String, Vec<ImCompleteSemanticToken>>,
 }
 
 #[tower_lsp::async_trait]
@@ -196,6 +185,7 @@ impl Notification for CustomNotification {
 struct TextDocumentItem {
     uri: Url,
     text: String,
+    #[allow(dead_code)]
     version: i32,
 }
 
@@ -216,19 +206,10 @@ async fn main() {
 
     let (service, socket) = LspService::build(|client| Backend {
         client,
-        ast_map: DashMap::new(),
         document_map: DashMap::new(),
-        semantic_token_map: DashMap::new(),
     })
     .finish();
 
     serde_json::json!({"test": 20});
     Server::new(stdin, stdout, socket).serve(service).await;
-}
-
-fn offset_to_position(offset: usize, rope: &Rope) -> Option<Position> {
-    let line = rope.try_char_to_line(offset).ok()?;
-    let first_char_of_line = rope.try_line_to_char(line).ok()?;
-    let column = offset - first_char_of_line;
-    Some(Position::new(line as u32, column as u32))
 }
