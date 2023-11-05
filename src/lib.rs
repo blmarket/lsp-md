@@ -1,7 +1,4 @@
 pub mod chumsky;
-pub(crate) mod completion;
-pub(crate) mod jump_definition;
-pub(crate) mod reference;
 pub(crate) mod section;
 pub(crate) mod semantic_token;
 
@@ -98,13 +95,19 @@ impl LanguageServer for Backend {
         let rope = self.document_map.get(&uri.to_string()).unwrap();
         let reference_list = || -> Option<Vec<Location>> {
             let entry = self.section_map.get(&uri.to_string())?;
-            
-            Some(entry.sections().into_iter().filter_map(|it| {
-                let s = offset_to_position(it.start, &rope)?;
-                let e = offset_to_position(it.end, &rope)?;
-                
-                Some(Location::new(uri.clone(), Range::new(s, e)))
-            }).collect())
+
+            Some(
+                entry
+                    .sections()
+                    .into_iter()
+                    .filter_map(|it| {
+                        let s = offset_to_position(it.start, &rope)?;
+                        let e = offset_to_position(it.end, &rope)?;
+
+                        Some(Location::new(uri.clone(), Range::new(s, e)))
+                    })
+                    .collect(),
+            )
         }();
         // FIXME: delete below
         self.client
@@ -199,6 +202,7 @@ impl Notification for CustomNotification {
 struct TextDocumentItem {
     uri: Url,
     text: String,
+    #[allow(dead_code)]
     version: i32,
 }
 
@@ -228,4 +232,3 @@ fn offset_to_position(offset: usize, rope: &Rope) -> Option<Position> {
     let column = offset - first_char_of_line;
     Some(Position::new(line as u32, column as u32))
 }
-
