@@ -67,8 +67,8 @@ pub fn get_reference_of_expr(
     include_self: bool,
 ) {
     match &expr.0 {
-        Expr::Error => {}
-        Expr::Value(_) => {}
+        Expr::Error => {},
+        Expr::Value(_) => {},
         Expr::Local((name, span)) => {
             if let Founded((symbol_name, symbol_span)) = reference_symbol {
                 if &symbol_name == name {
@@ -94,7 +94,7 @@ pub fn get_reference_of_expr(
             // } else {
             //     (true, None)
             // }
-        }
+        },
         Expr::Let(name, lhs, rest, name_span) => {
             let new_decl = Vector::unit((name.clone(), name_span.clone()));
             let next_symbol = match reference_symbol {
@@ -104,7 +104,7 @@ pub fn get_reference_of_expr(
                         reference_list.push(spanned_name.clone());
                     }
                     ReferenceSymbol::Founded(spanned_name)
-                }
+                },
                 _ => reference_symbol,
             };
 
@@ -122,7 +122,7 @@ pub fn get_reference_of_expr(
                 reference_list,
                 include_self,
             );
-        }
+        },
         Expr::Then(first, second) => {
             get_reference_of_expr(
                 first,
@@ -138,7 +138,7 @@ pub fn get_reference_of_expr(
                 reference_list,
                 include_self,
             );
-        }
+        },
         Expr::Binary(lhs, _op, rhs) => {
             get_reference_of_expr(
                 lhs,
@@ -154,7 +154,7 @@ pub fn get_reference_of_expr(
                 reference_list,
                 include_self,
             );
-        }
+        },
         Expr::Call(callee, args) => {
             get_reference_of_expr(
                 callee,
@@ -172,7 +172,7 @@ pub fn get_reference_of_expr(
                     include_self,
                 );
             }
-        }
+        },
         Expr::If(test, consequent, alternative) => {
             get_reference_of_expr(
                 test,
@@ -195,7 +195,7 @@ pub fn get_reference_of_expr(
                 reference_list,
                 include_self,
             );
-        }
+        },
         Expr::Print(expr) => get_reference_of_expr(
             expr,
             definition_ass_list,
@@ -213,6 +213,6 @@ pub fn get_reference_of_expr(
                     include_self,
                 );
             }
-        }
+        },
     }
 }

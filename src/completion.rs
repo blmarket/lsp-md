@@ -60,7 +60,7 @@ pub fn get_completion_of(
                 true => get_completion_of(rest, definition_map, ident_offset),
                 false => false,
             }
-        }
+        },
         Expr::Then(first, second) => match get_completion_of(first, definition_map, ident_offset) {
             true => get_completion_of(second, definition_map, ident_offset),
             false => false,
@@ -71,7 +71,7 @@ pub fn get_completion_of(
         },
         Expr::Call(callee, args) => {
             match get_completion_of(callee, definition_map, ident_offset) {
-                true => {}
+                true => {},
                 false => return false,
             }
             for expr in &args.0 {
@@ -81,18 +81,18 @@ pub fn get_completion_of(
                 }
             }
             true
-        }
+        },
         Expr::If(test, consequent, alternative) => {
             match get_completion_of(test, definition_map, ident_offset) {
-                true => {}
+                true => {},
                 false => return false,
             }
             match get_completion_of(consequent, definition_map, ident_offset) {
-                true => {}
+                true => {},
                 false => return false,
             }
             get_completion_of(alternative, definition_map, ident_offset)
-        }
+        },
         Expr::Print(expr) => get_completion_of(expr, definition_map, ident_offset),
         Expr::List(lst) => {
             for expr in lst {
@@ -102,6 +102,6 @@ pub fn get_completion_of(
                 }
             }
             true
-        }
+        },
     }
 }

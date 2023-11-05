@@ -1,8 +1,10 @@
-use chumsky::Parser;
-use chumsky::{prelude::*, stream::Stream};
 use core::fmt;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use chumsky::prelude::*;
+use chumsky::stream::Stream;
+use chumsky::Parser;
+use serde::{Deserialize, Serialize};
 use tower_lsp::lsp_types::SemanticTokenType;
 
 use crate::semantic_token::LEGEND_TYPE;
@@ -478,31 +480,31 @@ pub fn funcs_parser() -> impl Parser<Token, HashMap<String, Func>, Error = Simpl
 
 pub fn type_inference(expr: &Spanned<Expr>, symbol_type_table: &mut HashMap<Span, Value>) {
     match &expr.0 {
-        Expr::Error => {}
-        Expr::Value(_) => {}
+        Expr::Error => {},
+        Expr::Value(_) => {},
         Expr::List(exprs) => exprs
             .iter()
             .for_each(|expr| type_inference(expr, symbol_type_table)),
-        Expr::Local(_) => {}
+        Expr::Local(_) => {},
         Expr::Let(_name, lhs, rest, name_span) => {
             if let Some(value) = lhs.0.as_value() {
                 symbol_type_table.insert(name_span.clone(), value.clone());
             }
             type_inference(rest, symbol_type_table);
-        }
+        },
         Expr::Then(first, second) => {
             type_inference(first, symbol_type_table);
             type_inference(second, symbol_type_table);
-        }
-        Expr::Binary(_, _, _) => {}
-        Expr::Call(_, _) => {}
+        },
+        Expr::Binary(_, _, _) => {},
+        Expr::Call(_, _) => {},
         Expr::If(_test, consequent, alternative) => {
             type_inference(consequent, symbol_type_table);
             type_inference(alternative, symbol_type_table);
-        }
+        },
         Expr::Print(expr) => {
             type_inference(expr, symbol_type_table);
-        }
+        },
     }
 }
 

@@ -360,7 +360,7 @@ impl LanguageServer for Backend {
                             detail: Some(var),
                             ..Default::default()
                         });
-                    }
+                    },
                     nrs_language_server::completion::ImCompleteCompletionItem::Function(
                         name,
                         args,
@@ -381,7 +381,7 @@ impl LanguageServer for Backend {
                             insert_text_format: Some(InsertTextFormat::SNIPPET),
                             ..Default::default()
                         });
-                    }
+                    },
                 }
             }
             Some(ret)
@@ -512,7 +512,7 @@ impl Backend {
                 let (message, span) = match item.reason() {
                     chumsky::error::SimpleReason::Unclosed { span, delimiter } => {
                         (format!("Unclosed delimiter {}", delimiter), span.clone())
-                    }
+                    },
                     chumsky::error::SimpleReason::Unexpected => (
                         format!(
                             "{}, expected {}",
