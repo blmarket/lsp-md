@@ -57,7 +57,9 @@ impl LanguageServer for Backend {
                 definition_provider: Some(OneOf::Left(true)),
                 references_provider: Some(OneOf::Left(true)),
                 rename_provider: Some(OneOf::Left(true)),
-                code_lens_provider: Some(CodeLensOptions { resolve_provider: Some(true) }),
+                code_lens_provider: Some(CodeLensOptions {
+                    resolve_provider: Some(true),
+                }),
                 ..ServerCapabilities::default()
             },
         })
@@ -143,7 +145,10 @@ impl LanguageServer for Backend {
             .await;
         let reference_list = || -> Option<Vec<Location>> {
             let uri = params.text_document_position.text_document.uri;
-            let loc = Location::new(uri.clone(), Range::new(Position::new(0, 0), Position::new(0, 1)));
+            let loc = Location::new(
+                uri.clone(),
+                Range::new(Position::new(0, 0), Position::new(0, 1)),
+            );
             Some(vec![loc])
             // let ast = self.ast_map.get(&uri.to_string())?;
             // let rope = self.document_map.get(&uri.to_string())?;
@@ -166,7 +171,10 @@ impl LanguageServer for Backend {
             // Some(ret)
         }();
         self.client
-            .log_message(MessageType::INFO, format!("references: {:?}", reference_list))
+            .log_message(
+                MessageType::INFO,
+                format!("references: {:?}", reference_list),
+            )
             .await;
         Ok(reference_list)
     }
