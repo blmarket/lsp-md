@@ -94,33 +94,19 @@ impl LanguageServer for Backend {
         self.client
             .log_message(MessageType::INFO, "references")
             .await;
+        let uri = params.text_document_position.text_document.uri;
+        let rope = self.document_map.get(&uri.to_string()).unwrap();
         let reference_list = || -> Option<Vec<Location>> {
-            let uri = params.text_document_position.text_document.uri;
-            let loc = Location::new(
-                uri.clone(),
-                Range::new(Position::new(0, 0), Position::new(0, 1)),
-            );
-            Some(vec![loc])
-            // let ast = self.ast_map.get(&uri.to_string())?;
-            // let rope = self.document_map.get(&uri.to_string())?;
-
-            // let position = params.text_document_position.position;
-            // let char = rope.try_line_to_char(position.line as usize).ok()?;
-            // let offset = char + position.character as usize;
-            // let reference_list = get_reference(&ast, offset, false);
-            // let mut ret = reference_list
-            //     .into_iter()
-            //     .filter_map(|(_, range)| {
-            //         let start_position = offset_to_position(range.start, &rope)?;
-            //         let end_position = offset_to_position(range.end, &rope)?;
-
-            //         let range = Range::new(start_position, end_position);
-
-            //         Some(Location::new(uri.clone(), range))
-            //     })
-            //     .collect::<Vec<_>>();
-            // Some(ret)
+            let entry = self.section_map.get(&uri.to_string())?;
+            
+            Some(entry.sections().into_iter().filter_map(|it| {
+                let s = offset_to_position(it.start, &rope)?;
+                let e = offset_to_position(it.end, &rope)?;
+                
+                Some(Location::new(uri.clone(), Range::new(s, e)))
+            }).collect())
         }();
+        // FIXME: delete below
         self.client
             .log_message(
                 MessageType::INFO,
@@ -242,3 +228,4 @@ fn offset_to_position(offset: usize, rope: &Rope) -> Option<Position> {
     let column = offset - first_char_of_line;
     Some(Position::new(line as u32, column as u32))
 }
+

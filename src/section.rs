@@ -18,6 +18,10 @@ impl Sections {
 
         Ok(Sections::new(sections))
     }
+    
+    pub fn sections(&self) -> &Vec<Range<usize>> {
+        return &self.sections;
+    }
 }
 
 #[cfg(test)]
