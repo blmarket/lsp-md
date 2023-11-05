@@ -15,7 +15,10 @@ struct Backend {
 
 #[tower_lsp::async_trait]
 impl LanguageServer for Backend {
-    async fn initialize(&self, _: InitializeParams) -> Result<InitializeResult> {
+    async fn initialize(
+        &self,
+        _: InitializeParams,
+    ) -> Result<InitializeResult> {
         Ok(InitializeResult {
             server_info: None,
             offset_encoding: None,
@@ -75,7 +78,10 @@ impl LanguageServer for Backend {
             .await;
     }
 
-    async fn references(&self, params: ReferenceParams) -> Result<Option<Vec<Location>>> {
+    async fn references(
+        &self,
+        params: ReferenceParams,
+    ) -> Result<Option<Vec<Location>>> {
         self.client
             .log_message(MessageType::INFO, "references")
             .await;
@@ -121,7 +127,10 @@ impl LanguageServer for Backend {
             .await;
     }
 
-    async fn did_change_workspace_folders(&self, _: DidChangeWorkspaceFoldersParams) {
+    async fn did_change_workspace_folders(
+        &self,
+        _: DidChangeWorkspaceFoldersParams,
+    ) {
         self.client
             .log_message(MessageType::INFO, "workspace folders changed!")
             .await;
@@ -133,21 +142,31 @@ impl LanguageServer for Backend {
             .await;
     }
 
-    async fn execute_command(&self, _: ExecuteCommandParams) -> Result<Option<Value>> {
+    async fn execute_command(
+        &self,
+        _: ExecuteCommandParams,
+    ) -> Result<Option<Value>> {
         self.client
             .log_message(MessageType::INFO, "command executed!")
             .await;
 
         match self.client.apply_edit(WorkspaceEdit::default()).await {
-            Ok(res) if res.applied => self.client.log_message(MessageType::INFO, "applied").await,
-            Ok(_) => self.client.log_message(MessageType::INFO, "rejected").await,
+            Ok(res) if res.applied => {
+                self.client.log_message(MessageType::INFO, "applied").await
+            },
+            Ok(_) => {
+                self.client.log_message(MessageType::INFO, "rejected").await
+            },
             Err(err) => self.client.log_message(MessageType::ERROR, err).await,
         }
 
         Ok(None)
     }
 
-    async fn code_lens(&self, params: CodeLensParams) -> Result<Option<Vec<CodeLens>>> {
+    async fn code_lens(
+        &self,
+        params: CodeLensParams,
+    ) -> Result<Option<Vec<CodeLens>>> {
         let uri = params.text_document.uri;
 
         let code_lenses = vec![CodeLens {

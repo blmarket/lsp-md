@@ -56,7 +56,9 @@ impl fmt::Display for Token {
 fn lexer() -> impl Parser<char, Vec<(Token, Span)>, Error = Simple<char>> {
     // A parser for numbers
     let num = text::int(10)
-        .chain::<char, _, _>(just('.').chain(text::digits(10)).or_not().flatten())
+        .chain::<char, _, _>(
+            just('.').chain(text::digits(10)).or_not().flatten(),
+        )
         .collect::<String>()
         .map(Token::Num);
 
@@ -213,28 +215,41 @@ pub struct Func {
     pub span: Span,
 }
 
-fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone {
+fn expr_parser(
+) -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone {
     recursive(|expr| {
         let raw_expr = recursive(|raw_expr| {
             let val = filter_map(|span, tok| match tok {
                 Token::Null => Ok(Expr::Value(Value::Null)),
                 Token::Bool(x) => Ok(Expr::Value(Value::Bool(x))),
-                Token::Num(n) => Ok(Expr::Value(Value::Num(n.parse().unwrap()))),
+                Token::Num(n) => {
+                    Ok(Expr::Value(Value::Num(n.parse().unwrap())))
+                },
                 Token::Str(s) => Ok(Expr::Value(Value::Str(s))),
-                _ => Err(Simple::expected_input_found(span, Vec::new(), Some(tok))),
+                _ => Err(Simple::expected_input_found(
+                    span,
+                    Vec::new(),
+                    Some(tok),
+                )),
             })
             .labelled("value");
 
             let ident = filter_map(|span, tok| match tok {
                 Token::Ident(ident) => Ok((ident, span)),
-                _ => Err(Simple::expected_input_found(span, Vec::new(), Some(tok))),
+                _ => Err(Simple::expected_input_found(
+                    span,
+                    Vec::new(),
+                    Some(tok),
+                )),
             })
             .labelled("identifier");
 
             // A list of expressions
             let items = expr
                 .clone()
-                .chain(just(Token::Ctrl(',')).ignore_then(expr.clone()).repeated())
+                .chain(
+                    just(Token::Ctrl(',')).ignore_then(expr.clone()).repeated(),
+                )
                 .then_ignore(just(Token::Ctrl(',')).or_not())
                 .or_not()
                 .map(|item| item.unwrap_or_default());
@@ -262,16 +277,17 @@ fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + C
                 .or(list)
                 // In Nano Rust, `print` is just a keyword, just like Python 2, for simplicity
                 .or(just(Token::Print)
-                    .ignore_then(
-                        expr.clone()
-                            .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
-                    )
+                    .ignore_then(expr.clone().delimited_by(
+                        just(Token::Ctrl('(')),
+                        just(Token::Ctrl(')')),
+                    ))
                     .map(|expr| Expr::Print(Box::new(expr))))
                 .map_with_span(|expr, span| (expr, span))
                 // Atoms can also just be normal expressions, but surrounded with parentheses
-                .or(expr
-                    .clone()
-                    .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))))
+                .or(expr.clone().delimited_by(
+                    just(Token::Ctrl('(')),
+                    just(Token::Ctrl(')')),
+                ))
                 // Attempt to recover anything that looks like a parenthesised expression but contains errors
                 .recover_with(nested_delimiters(
                     Token::Ctrl('('),
@@ -297,7 +313,10 @@ fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + C
             let call = atom
                 .then(
                     items
-                        .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')')))
+                        .delimited_by(
+                            just(Token::Ctrl('(')),
+                            just(Token::Ctrl(')')),
+                        )
                         .map_with_span(|args, span| (args, span))
                         .repeated(),
                 )
@@ -310,25 +329,23 @@ fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + C
             let op = just(Token::Op("*".to_string()))
                 .to(BinaryOp::Mul)
                 .or(just(Token::Op("/".to_string())).to(BinaryOp::Div));
-            let product = call
-                .clone()
-                .then(op.then(call).repeated())
-                .foldl(|a, (op, b)| {
+            let product = call.clone().then(op.then(call).repeated()).foldl(
+                |a, (op, b)| {
                     let span = a.1.start..b.1.end;
                     (Expr::Binary(Box::new(a), op, Box::new(b)), span)
-                });
+                },
+            );
 
             // Sum ops (add and subtract) have equal precedence
             let op = just(Token::Op("+".to_string()))
                 .to(BinaryOp::Add)
                 .or(just(Token::Op("-".to_string())).to(BinaryOp::Sub));
-            let sum = product
-                .clone()
-                .then(op.then(product).repeated())
-                .foldl(|a, (op, b)| {
+            let sum = product.clone().then(op.then(product).repeated()).foldl(
+                |a, (op, b)| {
                     let span = a.1.start..b.1.end;
                     (Expr::Binary(Box::new(a), op, Box::new(b)), span)
-                });
+                },
+            );
 
             // Comparison ops (equal, not-equal) have equal precedence
             let op = just(Token::Op("==".to_string()))
@@ -375,7 +392,9 @@ fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + C
                             Box::new(match b {
                                 Some(b) => b,
                                 // If an `if` expression has no trailing `else` block, we magic up one that just produces null
-                                None => (Expr::Value(Value::Null), span.clone()),
+                                None => {
+                                    (Expr::Value(Value::Null), span.clone())
+                                },
                             }),
                         ),
                         span,
@@ -414,7 +433,8 @@ fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + C
     })
 }
 
-pub fn funcs_parser() -> impl Parser<Token, HashMap<String, Func>, Error = Simple<Token>> + Clone {
+pub fn funcs_parser(
+) -> impl Parser<Token, HashMap<String, Func>, Error = Simple<Token>> + Clone {
     let ident = filter_map(|span, tok| match tok {
         Token::Ident(ident) => Ok(ident),
         _ => Err(Simple::expected_input_found(span, Vec::new(), Some(tok))),
@@ -478,7 +498,10 @@ pub fn funcs_parser() -> impl Parser<Token, HashMap<String, Func>, Error = Simpl
         .then_ignore(end())
 }
 
-pub fn type_inference(expr: &Spanned<Expr>, symbol_type_table: &mut HashMap<Span, Value>) {
+pub fn type_inference(
+    expr: &Spanned<Expr>,
+    symbol_type_table: &mut HashMap<Span, Value>,
+) {
     match &expr.0 {
         Expr::Error => {},
         Expr::Value(_) => {},
@@ -595,8 +618,9 @@ pub fn parse(src: &str) -> ParserResult {
             })
             .collect::<Vec<_>>();
         let len = src.chars().count();
-        let (ast, parse_errs) =
-            funcs_parser().parse_recovery(Stream::from_iter(len..len + 1, tokens.into_iter()));
+        let (ast, parse_errs) = funcs_parser().parse_recovery(
+            Stream::from_iter(len..len + 1, tokens.into_iter()),
+        );
 
         (ast, parse_errs, semantic_tokens)
     } else {

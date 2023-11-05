@@ -15,7 +15,9 @@ pub const LEGEND_TYPE: &[SemanticTokenType] = &[
     SemanticTokenType::PARAMETER,
 ];
 
-pub fn semantic_token_from_ast(ast: &HashMap<String, Func>) -> Vec<ImCompleteSemanticToken> {
+pub fn semantic_token_from_ast(
+    ast: &HashMap<String, Func>,
+) -> Vec<ImCompleteSemanticToken> {
     let mut semantic_tokens = vec![];
 
     ast.iter().for_each(|(_func_name, function)| {

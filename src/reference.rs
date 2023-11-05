@@ -75,7 +75,8 @@ pub fn get_reference_of_expr(
                     let index = definition_ass_list
                         .iter()
                         .position(|decl| decl.0 == symbol_name);
-                    if let Some(symbol) = index.map(|i| definition_ass_list.get(i).unwrap().clone())
+                    if let Some(symbol) = index
+                        .map(|i| definition_ass_list.get(i).unwrap().clone())
                     {
                         if symbol == (symbol_name, symbol_span) {
                             reference_list.push((name.clone(), span.clone()));
@@ -98,7 +99,9 @@ pub fn get_reference_of_expr(
         Expr::Let(name, lhs, rest, name_span) => {
             let new_decl = Vector::unit((name.clone(), name_span.clone()));
             let next_symbol = match reference_symbol {
-                Founding(ident) if ident >= name_span.start && ident < name_span.end => {
+                Founding(ident)
+                    if ident >= name_span.start && ident < name_span.end =>
+                {
                     let spanned_name = (name.clone(), name_span.clone());
                     if include_self {
                         reference_list.push(spanned_name.clone());
