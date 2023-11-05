@@ -1,6 +1,6 @@
-pub mod chumsky;
-pub mod completion;
-pub mod jump_definition;
-pub mod reference;
-mod sections;
-pub mod semantic_token;
+pub(crate) mod chumsky;
+pub(crate) mod completion;
+pub(crate) mod jump_definition;
+pub(crate) mod reference;
+pub(crate) mod section;
+pub(crate) mod semantic_token;

@@ -28,7 +28,7 @@ mod tests {
     #[test]
     fn test() {
         assert_eq!(
-          Sections::new(vec![1..12, 32..44]), parse(
-            "\n# Section 1\n\nContents...\n\n---\n\n## Section 2\n\nContent of section 2...\n\n### Subsection").unwrap());
+          Sections::new(vec![1..12, 32..44]),
+          parse("\n# Section 1\n\nContents...\n\n---\n\n## Section 2\n\nContent of section 2...\n\n### Subsection").unwrap());
     }
 }

@@ -6,3 +6,5 @@ out/
 *.nrs
 dist/
 *.vsix
+database.db
+*.onnx
