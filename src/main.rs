@@ -15,6 +15,7 @@ use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::notification::Notification;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
+
 #[derive(Debug)]
 struct Backend {
     client: Client,
@@ -53,32 +54,6 @@ impl LanguageServer for Backend {
                     }),
                     file_operations: None,
                 }),
-                semantic_tokens_provider: Some(
-                    SemanticTokensServerCapabilities::SemanticTokensRegistrationOptions(
-                        SemanticTokensRegistrationOptions {
-                            text_document_registration_options: {
-                                TextDocumentRegistrationOptions {
-                                    document_selector: Some(vec![DocumentFilter {
-                                        language: Some("nrs".to_string()),
-                                        scheme: Some("file".to_string()),
-                                        pattern: None,
-                                    }]),
-                                }
-                            },
-                            semantic_tokens_options: SemanticTokensOptions {
-                                work_done_progress_options: WorkDoneProgressOptions::default(),
-                                legend: SemanticTokensLegend {
-                                    token_types: LEGEND_TYPE.into(),
-                                    token_modifiers: vec![],
-                                },
-                                range: Some(true),
-                                full: Some(SemanticTokensFullOptions::Bool(true)),
-                            },
-                            static_registration_options: StaticRegistrationOptions::default(),
-                        },
-                    ),
-                ),
-                // definition: Some(GotoCapability::default()),
                 definition_provider: Some(OneOf::Left(true)),
                 references_provider: Some(OneOf::Left(true)),
                 rename_provider: Some(OneOf::Left(true)),
@@ -161,29 +136,38 @@ impl LanguageServer for Backend {
         .await;
         Ok(definition)
     }
+
     async fn references(&self, params: ReferenceParams) -> Result<Option<Vec<Location>>> {
+        self.client
+            .log_message(MessageType::INFO, "references")
+            .await;
         let reference_list = || -> Option<Vec<Location>> {
             let uri = params.text_document_position.text_document.uri;
-            let ast = self.ast_map.get(&uri.to_string())?;
-            let rope = self.document_map.get(&uri.to_string())?;
+            let loc = Location::new(uri.clone(), Range::new(Position::new(0, 0), Position::new(0, 1)));
+            Some(vec![loc])
+            // let ast = self.ast_map.get(&uri.to_string())?;
+            // let rope = self.document_map.get(&uri.to_string())?;
 
-            let position = params.text_document_position.position;
-            let char = rope.try_line_to_char(position.line as usize).ok()?;
-            let offset = char + position.character as usize;
-            let reference_list = get_reference(&ast, offset, false);
-            let ret = reference_list
-                .into_iter()
-                .filter_map(|(_, range)| {
-                    let start_position = offset_to_position(range.start, &rope)?;
-                    let end_position = offset_to_position(range.end, &rope)?;
+            // let position = params.text_document_position.position;
+            // let char = rope.try_line_to_char(position.line as usize).ok()?;
+            // let offset = char + position.character as usize;
+            // let reference_list = get_reference(&ast, offset, false);
+            // let mut ret = reference_list
+            //     .into_iter()
+            //     .filter_map(|(_, range)| {
+            //         let start_position = offset_to_position(range.start, &rope)?;
+            //         let end_position = offset_to_position(range.end, &rope)?;
 
-                    let range = Range::new(start_position, end_position);
+            //         let range = Range::new(start_position, end_position);
 
-                    Some(Location::new(uri.clone(), range))
-                })
-                .collect::<Vec<_>>();
-            Some(ret)
+            //         Some(Location::new(uri.clone(), range))
+            //     })
+            //     .collect::<Vec<_>>();
+            // Some(ret)
         }();
+        self.client
+            .log_message(MessageType::INFO, format!("references: {:?}", reference_list))
+            .await;
         Ok(reference_list)
     }
 
