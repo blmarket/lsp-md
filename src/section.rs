@@ -8,17 +8,16 @@ pub struct Sections {
 }
 
 impl Sections {
-    pub fn new(sections: Vec<Range<usize>>) -> Sections {
+    pub fn new(sections: Vec<Range<usize>>) -> Self {
         Sections { sections }
     }
-}
 
-#[allow(dead_code)]
-pub fn parse(src: &str) -> anyhow::Result<Sections> {
-    let re = RegexBuilder::new(r"^##? (.*)$").multi_line(true).build()?;
-    let sections = re.find_iter(src).map(|it| it.range()).collect();
+    pub fn parse(src: &str) -> anyhow::Result<Self> {
+        let re = RegexBuilder::new(r"^##? (.*)$").multi_line(true).build()?;
+        let sections = re.find_iter(src).map(|it| it.range()).collect();
 
-    Ok(Sections::new(sections))
+        Ok(Sections::new(sections))
+    }
 }
 
 #[cfg(test)]
@@ -29,6 +28,6 @@ mod tests {
     fn test() {
         assert_eq!(
           Sections::new(vec![1..12, 32..44]),
-          parse("\n# Section 1\n\nContents...\n\n---\n\n## Section 2\n\nContent of section 2...\n\n### Subsection").unwrap());
+          Sections::parse("\n# Section 1\n\nContents...\n\n---\n\n## Section 2\n\nContent of section 2...\n\n### Subsection").unwrap());
     }
 }

@@ -7,6 +7,7 @@ pub(crate) mod semantic_token;
 
 use dashmap::DashMap;
 use ropey::Rope;
+use section::Sections;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tower_lsp::jsonrpc::Result;
@@ -18,6 +19,7 @@ use tower_lsp::{Client, LanguageServer};
 pub struct Backend {
     client: Client,
     document_map: DashMap<String, Rope>,
+    section_map: DashMap<String, Sections>,
 }
 
 #[tower_lsp::async_trait]
@@ -211,7 +213,6 @@ impl Notification for CustomNotification {
 struct TextDocumentItem {
     uri: Url,
     text: String,
-    #[allow(dead_code)]
     version: i32,
 }
 
@@ -220,6 +221,7 @@ impl Backend {
         Backend {
             client,
             document_map: DashMap::new(),
+            section_map: DashMap::new(),
         }
     }
 
@@ -227,5 +229,16 @@ impl Backend {
         let rope = ropey::Rope::from_str(&params.text);
         self.document_map
             .insert(params.uri.to_string(), rope.clone());
+        self.section_map.insert(
+            params.uri.to_string(),
+            Sections::parse(&params.text).unwrap(),
+        );
     }
+}
+
+fn offset_to_position(offset: usize, rope: &Rope) -> Option<Position> {
+    let line = rope.try_char_to_line(offset).ok()?;
+    let first_char_of_line = rope.try_line_to_char(line).ok()?;
+    let column = offset - first_char_of_line;
+    Some(Position::new(line as u32, column as u32))
 }
