@@ -216,6 +216,13 @@ struct TextDocumentItem {
 }
 
 impl Backend {
+    pub fn new(client: Client) -> Self {
+        Backend {
+            client,
+            document_map: DashMap::new(),
+        }
+    }
+
     async fn on_change(&self, params: TextDocumentItem) {
         let rope = ropey::Rope::from_str(&params.text);
         self.document_map
