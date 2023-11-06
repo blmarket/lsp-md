@@ -1,3 +1,5 @@
+mod embedding;
+
 use std::ops::Range;
 
 use regex::RegexBuilder;

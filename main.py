@@ -24,8 +24,20 @@ def text_embedding(text) -> list:
 conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
 cursor.execute("CREATE TABLE IF NOT EXISTS embeddings (id INTEGER PRIMARY KEY, text TEXT, embedding BINARY);")
+cursor.execute("CREATE TABLE IF NOT EXISTS embeddings2 (id INTEGER PRIMARY KEY, text TEXT, embedding BINARY);")
 cursor.close()
 conn.close()
+
+#%%
+import struct
+
+def transmute_embedding_to_binary(emb: np.ndarray) -> bytes:
+  """Transmute embedding into binary"""
+  binary = b''
+  for f in emb:
+    binary += struct.pack('f', f)
+  return binary
+   
 
 #%%
 def find_from_database(text):
@@ -50,7 +62,10 @@ def put_into_database(text, embedding):
   conn = sqlite3.connect("database.db")
   cursor = conn.cursor()
   cursor.execute("INSERT INTO embeddings (text, embedding) VALUES (?, ?);", (text, bindata))
+  cursor.execute("INSERT INTO embeddings2 (text, embedding) VALUES (?, ?);", (text, transmute_embedding_to_binary(embedding)))
+  cursor.close()
   conn.commit()
+  conn.close()
  
 #%%
 def get_or_calc(text):
@@ -61,11 +76,12 @@ def get_or_calc(text):
   return entry
 
 #%%
-len(get_or_calc("test"))
+emb = get_or_calc("test")
+transmute_embedding_to_binary(emb)
 
 # %%
 # Find all markdown headers.
-sections = re.finditer(r'^# (.+)$', contents, re.MULTILINE)
+sections = re.finditer(r'^## (.+)$', contents, re.MULTILINE)
 prev = 0
 
 for idx, it in enumerate(sections):
@@ -92,7 +108,9 @@ texts = []
 cursor.execute("SELECT text, embedding FROM embeddings")
 for row in cursor:
   texts.append(row[0])
-  embeddings.append(np.load(io.BytesIO(row[1])))
+  emb = np.load(io.BytesIO(row[1]))
+  put_into_database(row[0], emb)
+  embeddings.append(emb)
 embeddings = np.array(embeddings)
 
 cursor.close()
