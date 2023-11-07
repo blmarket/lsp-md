@@ -4,7 +4,7 @@ trait Embedding {
     fn embedding(&self) -> [f32; 768];
 }
 
-fn to_byte_array(embedding: [f32; 768]) -> [u8; 3072] {
+pub(super) fn to_byte_array(embedding: &[f32; 768]) -> &[u8; 3072] {
     unsafe { transmute(embedding) }
 }
 
@@ -27,10 +27,10 @@ mod tests {
             }
             arr
         };
-        let bytes = to_byte_array(embedding);
+        let bytes = to_byte_array(&embedding);
         assert_eq!(bytes[0..8], [0, 0, 128, 63, 0, 0, 0, 64]);
         assert_eq!(bytes[3064..3072], [0, 192, 63, 68, 0, 0, 64, 68]);
-        let emb2 = from_byte_array(bytes);
+        let emb2 = from_byte_array(bytes.clone());
         assert_eq!(emb2[0..5], [1.0, 2.0, 3.0, 4.0, 5.0]);
         assert_eq!(emb2[763..768], [764.0, 765.0, 766.0, 767.0, 768.0]);
     }
