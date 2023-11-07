@@ -8,3 +8,4 @@ dist/
 *.vsix
 database.db
 *.onnx
+test.md
