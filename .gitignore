@@ -7,5 +7,5 @@ out/
 dist/
 *.vsix
 database.db
-*.onnx
 test.md
+all-MiniLM-L12-v2/
