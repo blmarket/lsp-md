@@ -8,7 +8,7 @@ fn to_byte_array(embedding: [f32; 768]) -> [u8; 3072] {
     unsafe { transmute(embedding) }
 }
 
-fn from_byte_array(bytes: [u8; 3072]) -> [f32; 768] {
+pub(super) fn from_byte_array(bytes: [u8; 3072]) -> [f32; 768] {
     unsafe { transmute(bytes) }
 }
 
