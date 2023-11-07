@@ -21,3 +21,4 @@ regex = "1"
 rusqlite = "0.29"
 r2d2 = "0.8"
 r2d2_sqlite = "0.22"
+google-api-proto = { version = "1", features=["google-ai-generativelanguage-v1beta3"] }
