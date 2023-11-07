@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use super::embedding::{from_byte_array, to_byte_array};
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
