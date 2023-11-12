@@ -6,3 +6,6 @@ out/
 *.nrs
 dist/
 *.vsix
+database.db
+test.md
+all-MiniLM-L12-v2/
