@@ -19,16 +19,34 @@
 			"type": "npm",
 			"script": "watch",
 			"isBackground": true,
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
+			"group": "build",
 			"presentation": {
 				"panel": "dedicated",
 				"reveal": "never"
 			},
 			"problemMatcher": [
 				"$tsc-watch"
+			],
+			"label": "npm: watch",
+			"detail": "rm -rf dist && tsc -b -w"
+		},
+		{
+			"type": "cargo",
+			"command": "build",
+			"problemMatcher": [
+				"$rustc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"label": "rust: cargo build"
+		},
+		{
+			"label": "build",
+			"dependsOn": [
+				"rust: cargo build",
+				"npm: watch"
 			]
 		}
 	]
