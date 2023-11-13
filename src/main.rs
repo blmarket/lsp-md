@@ -1,6 +1,6 @@
 use dashmap::DashMap;
-use tower_lsp::{LspService, Server};
 use nrs_language_server::Backend;
+use tower_lsp::{LspService, Server};
 
 #[tokio::main]
 async fn main() {
@@ -11,9 +11,7 @@ async fn main() {
 
     let (service, socket) = LspService::build(|client| Backend {
         client,
-        ast_map: DashMap::new(),
         document_map: DashMap::new(),
-        semantic_token_map: DashMap::new(),
     })
     .finish();
 
