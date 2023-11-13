@@ -1,5 +1,5 @@
 use dashmap::DashMap;
-use nrs_language_server::Backend;
+use lsp_md::Backend;
 use tower_lsp::{LspService, Server};
 
 #[tokio::main]

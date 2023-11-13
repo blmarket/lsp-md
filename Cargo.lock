@@ -975,6 +975,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "lsp-md"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chumsky",
+ "ciborium",
+ "dashmap",
+ "env_logger",
+ "im-rc",
+ "log",
+ "regex",
+ "ropey",
+ "rust-bert",
+ "serde",
+ "serde_json",
+ "tch",
+ "tokio",
+ "tower-lsp",
+]
+
+[[package]]
 name = "lsp-types"
 version = "0.94.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1068,27 +1089,6 @@ dependencies = [
  "num-integer",
  "num-traits",
  "rawpointer",
-]
-
-[[package]]
-name = "nrs-language-server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chumsky",
- "ciborium",
- "dashmap",
- "env_logger",
- "im-rc",
- "log",
- "regex",
- "ropey",
- "rust-bert",
- "serde",
- "serde_json",
- "tch",
- "tokio",
- "tower-lsp",
 ]
 
 [[package]]

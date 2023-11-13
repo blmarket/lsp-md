@@ -1,6 +1,6 @@
 {
-  "name": "nrs-language-server",
-  "description": "nano rust language server",
+  "name": "lsp-md",
+  "description": "Markdown language server for similarity search",
   "license": "MIT",
   "version": "1.5.0",
   "categories": [],
@@ -30,9 +30,9 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "nrs-language-server",
+      "title": "lsp-md",
       "properties": {
-        "nrs-language-server.trace.server": {
+        "lsp-md.trace.server": {
           "type": "string",
           "scope": "window",
           "enum": [
