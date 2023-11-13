@@ -3,6 +3,7 @@ mod document;
 mod embedding;
 #[cfg(test)]
 mod integration_tests;
+mod keywords;
 mod similar_notes;
 
 pub use bert::Model;
