@@ -1,6 +1,5 @@
 mod bert;
 mod document;
-mod embedding;
 #[cfg(test)]
 mod integration_tests;
 mod similar_notes;

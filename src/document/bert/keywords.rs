@@ -6,7 +6,7 @@ use rust_bert::pipelines::sentence_embeddings::{
 };
 
 use super::Encoder;
-use super::super::embedding::Embedding;
+use super::embedding::Embedding;
 
 struct BertModels<'a> {
     model: KeywordExtractionModel<'a>,

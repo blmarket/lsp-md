@@ -5,7 +5,7 @@ use rust_bert::pipelines::sentence_embeddings::{
     SentenceEmbeddingsModelType,
 };
 
-use super::super::embedding::Embedding;
+use super::embedding::Embedding;
 
 pub trait Encoder {
     fn encode_batch(
