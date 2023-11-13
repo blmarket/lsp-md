@@ -1,15 +1,13 @@
-use rust_bert::pipelines::{
-    keywords_extraction::{KeywordExtractionConfig, KeywordExtractionModel},
-    sentence_embeddings::{
-        SentenceEmbeddingsConfig, SentenceEmbeddingsModelType,
-    },
+use rust_bert::pipelines::keywords_extraction::{
+    KeywordExtractionConfig, KeywordExtractionModel,
+};
+use rust_bert::pipelines::sentence_embeddings::{
+    SentenceEmbeddingsConfig, SentenceEmbeddingsModelType,
 };
 
-use super::{
-    embedding::Embedding,
-    keywords::{Keyword, Keywords},
-    Encoder,
-};
+use super::embedding::Embedding;
+use super::keywords::{Keyword, Keywords};
+use super::Encoder;
 
 pub struct BertModel {
     model: KeywordExtractionModel<'static>,
@@ -64,7 +62,7 @@ impl Keywords for BertModel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_local_model_encode() -> anyhow::Result<()> {
         let model = BertModel::default();

@@ -5,9 +5,8 @@ use rust_bert::pipelines::sentence_embeddings::{
 };
 use tower_lsp::lsp_types::Position;
 
-use super::BertModel;
 use super::similar_notes::find_similar;
-use super::Document;
+use super::{BertModel, Document};
 
 struct TestSubject {
     pub model: BertModel,

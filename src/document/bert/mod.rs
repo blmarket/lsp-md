@@ -1,5 +1,5 @@
-mod encoder;
 mod embedding;
+mod encoder;
 mod keywords;
 mod model;
 

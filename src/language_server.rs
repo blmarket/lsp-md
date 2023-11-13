@@ -10,7 +10,7 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
-    find_similar, find_similar2, query_section_titles, Document, BertModel,
+    find_similar, find_similar2, query_section_titles, BertModel, Document,
 };
 
 pub struct Backend {
