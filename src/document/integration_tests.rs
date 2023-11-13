@@ -5,7 +5,7 @@ use rust_bert::pipelines::sentence_embeddings::{
 };
 use tower_lsp::lsp_types::Position;
 
-use super::bert::Model;
+use super::Model;
 use super::similar_notes::find_similar;
 use super::Document;
 

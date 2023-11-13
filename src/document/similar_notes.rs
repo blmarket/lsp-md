@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tower_lsp::lsp_types::{Location, Position, Range, Url};
 
-use super::bert::Encoder;
+use super::Encoder;
 use super::document::{BasicDocumentExt, DocumentAdapter};
 
 pub fn find_similar<D>(doc: &D, enc: &impl Encoder, pos: Position) -> Vec<Range>

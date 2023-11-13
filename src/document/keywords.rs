@@ -5,7 +5,7 @@ use rust_bert::pipelines::sentence_embeddings::{
     SentenceEmbeddingsConfig, SentenceEmbeddingsModelType,
 };
 
-use super::bert::Encoder;
+use super::Encoder;
 use super::embedding::Embedding;
 
 struct BertModels<'a> {

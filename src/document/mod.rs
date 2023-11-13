@@ -6,7 +6,7 @@ mod integration_tests;
 mod keywords;
 mod similar_notes;
 
-pub use bert::Model;
+pub use bert::{Encoder, Model};
 pub use document::Document;
 pub use similar_notes::{
     find_similar, find_similar2, query_section_titles, ScoredLocation,
