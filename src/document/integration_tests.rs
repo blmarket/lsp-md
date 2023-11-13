@@ -17,7 +17,7 @@ struct TestSubject {
 fn prepare_subject() -> anyhow::Result<TestSubject> {
     let model = Model::load()?;
 
-    let contents = fs::read_to_string("test.md")
+    let contents = fs::read_to_string("examples/test.md")
         .expect("Something went wrong reading the file");
     let document = Document::parse(contents)?;
 
