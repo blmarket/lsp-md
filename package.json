@@ -9,10 +9,10 @@
     "tower-lsp"
   ],
   "repository": {
-    "url": "https://github.com/IWANABETHATGUY/tower-lsp-boilerplate"
+    "url": "https://github.com/blmarket/lsp-md"
   },
   "engines": {
-    "vscode": "^1.66.0"
+    "vscode": "^1.84.0"
   },
   "enabledApiProposals": [],
   "activationEvents": [
