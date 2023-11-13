@@ -1,16 +1,22 @@
+use std::sync::Mutex;
+
 use dashmap::DashMap;
+use crate::document::{
+    find_similar, find_similar2, query_section_titles, Document, Model,
+};
 use ropey::Rope;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::notification::Notification;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
-#[derive(Debug)]
 pub struct Backend {
-    pub client: Client,
-    pub document_map: DashMap<String, Rope>,
+    client: Client,
+    encoder: Mutex<Model>,
+    document_map: DashMap<String, Rope>,
+    section_map: DashMap<String, Document>,
 }
 
 #[tower_lsp::async_trait]
@@ -23,6 +29,13 @@ impl LanguageServer for Backend {
             server_info: None,
             offset_encoding: None,
             capabilities: ServerCapabilities {
+                text_document_sync: Some(TextDocumentSyncCapability::Kind(
+                    TextDocumentSyncKind::FULL,
+                )),
+                references_provider: Some(OneOf::Left(true)),
+                code_lens_provider: Some(CodeLensOptions {
+                    resolve_provider: Some(false),
+                }),
                 execute_command_provider: Some(ExecuteCommandOptions {
                     commands: vec!["dummy.do_something".to_string()],
                     work_done_progress_options: Default::default(),
@@ -31,6 +44,7 @@ impl LanguageServer for Backend {
             },
         })
     }
+
     async fn initialized(&self, _: InitializedParams) {
         self.client
             .log_message(MessageType::INFO, "initialized!")
@@ -67,10 +81,75 @@ impl LanguageServer for Backend {
             .log_message(MessageType::INFO, "file saved!")
             .await;
     }
+
     async fn did_close(&self, _: DidCloseTextDocumentParams) {
         self.client
             .log_message(MessageType::INFO, "file closed!")
             .await;
+    }
+
+    async fn references(
+        &self,
+        params: ReferenceParams,
+    ) -> Result<Option<Vec<Location>>> {
+        self.client
+            .log_message(
+                MessageType::INFO,
+                format!(
+                    "references: {:?}",
+                    params.text_document_position.position
+                ),
+            )
+            .await;
+
+        let uri = params.text_document_position.text_document.uri;
+        let entry = self.section_map.get(&uri.to_string()).unwrap();
+
+        let ranges = find_similar(
+            entry.value(),
+            &self.encoder,
+            params.text_document_position.position,
+        );
+        self.client
+            .log_message(
+                MessageType::INFO,
+                format!("references:: result: {:?}", ranges),
+            )
+            .await;
+
+        Ok(ranges
+            .into_iter()
+            .map(|r| Some(Location::new(uri.clone(), r)))
+            .collect::<Option<Vec<Location>>>())
+    }
+
+    async fn code_lens(
+        &self,
+        params: CodeLensParams,
+    ) -> Result<Option<Vec<CodeLens>>> {
+        let uri = params.text_document.uri;
+
+        let entry = self.section_map.get(&uri.to_string()).unwrap();
+        let section_titles = query_section_titles(entry.value());
+
+        let res = section_titles
+            .into_iter()
+            .flat_map(|r| {
+                vec![CodeLens {
+                    range: r,
+                    command: Some(Command {
+                        title: "Search similar documents".to_string(),
+                        command: "dummy.do_something".to_string(),
+                        arguments: Some(vec![
+                            json!(Location::new(uri.clone(), r)),
+                        ]),
+                    }),
+                    data: None,
+                }]
+            })
+            .collect();
+
+        Ok(Some(res))
     }
 
     async fn did_change_configuration(&self, _: DidChangeConfigurationParams) {
@@ -96,25 +175,44 @@ impl LanguageServer for Backend {
 
     async fn execute_command(
         &self,
-        _: ExecuteCommandParams,
+        params: ExecuteCommandParams,
     ) -> Result<Option<Value>> {
         self.client
-            .log_message(MessageType::INFO, "command executed!")
+            .log_message(
+                MessageType::INFO,
+                format!("command executed!: {:?}", params),
+            )
             .await;
 
-        match self.client.apply_edit(WorkspaceEdit::default()).await {
-            Ok(res) if res.applied => {
-                self.client.log_message(MessageType::INFO, "applied").await
+        match params.command.as_str() {
+            "dummy.do_something" => {
+                self.client
+                    .log_message(MessageType::INFO, "dummy.do_something")
+                    .await;
+                dbg!(&params);
+                let loc: Location =
+                    serde_json::from_value(params.arguments[0].to_owned())
+                        .unwrap();
+                self.client
+                    .log_message(MessageType::INFO, format!("loc: {:?}", &loc))
+                    .await;
+                Ok(Some(json!(find_similar2(
+                    loc.uri.clone(),
+                    self.section_map.get(loc.uri.as_str()).unwrap().value(),
+                    &self.encoder,
+                    loc.range.start
+                ))))
             },
-            Ok(_) => {
-                self.client.log_message(MessageType::INFO, "rejected").await
+            _ => {
+                self.client
+                    .log_message(MessageType::INFO, "unknown command")
+                    .await;
+                Ok(None)
             },
-            Err(err) => self.client.log_message(MessageType::ERROR, err).await,
         }
-
-        Ok(None)
     }
 }
+
 #[derive(Debug, Deserialize, Serialize)]
 struct InlayHintParams {
     path: String,
@@ -128,13 +226,27 @@ impl Notification for CustomNotification {
 struct TextDocumentItem {
     uri: Url,
     text: String,
+    #[allow(dead_code)]
     version: i32,
 }
 
 impl Backend {
+    pub fn new(client: Client) -> Self {
+        Backend {
+            client,
+            encoder: Mutex::new(Model::load().unwrap()),
+            document_map: DashMap::new(),
+            section_map: DashMap::new(),
+        }
+    }
+
     async fn on_change(&self, params: TextDocumentItem) {
         let rope = ropey::Rope::from_str(&params.text);
         self.document_map
             .insert(params.uri.to_string(), rope.clone());
+        self.section_map.insert(
+            params.uri.to_string(),
+            Document::parse(params.text).unwrap(),
+        );
     }
 }
