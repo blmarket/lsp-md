@@ -1,9 +1,6 @@
 use std::sync::Mutex;
 
 use dashmap::DashMap;
-use crate::document::{
-    find_similar, find_similar2, query_section_titles, Document, Model,
-};
 use ropey::Rope;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -11,6 +8,10 @@ use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::notification::Notification;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
+
+use crate::document::{
+    find_similar, find_similar2, query_section_titles, Document, Model,
+};
 
 pub struct Backend {
     client: Client,
@@ -140,9 +141,10 @@ impl LanguageServer for Backend {
                     command: Some(Command {
                         title: "Search similar documents".to_string(),
                         command: "dummy.do_something".to_string(),
-                        arguments: Some(vec![
-                            json!(Location::new(uri.clone(), r)),
-                        ]),
+                        arguments: Some(vec![json!(Location::new(
+                            uri.clone(),
+                            r
+                        ))]),
                     }),
                     data: None,
                 }]
