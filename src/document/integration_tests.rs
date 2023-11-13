@@ -5,17 +5,17 @@ use rust_bert::pipelines::sentence_embeddings::{
 };
 use tower_lsp::lsp_types::Position;
 
-use super::Model;
+use super::BertModels;
 use super::similar_notes::find_similar;
 use super::Document;
 
 struct TestSubject {
-    pub model: Model,
+    pub model: BertModels,
     pub document: Document,
 }
 
 fn prepare_subject() -> anyhow::Result<TestSubject> {
-    let model = Model::load()?;
+    let model = BertModels::default();
 
     let contents = fs::read_to_string("examples/test.md")
         .expect("Something went wrong reading the file");
