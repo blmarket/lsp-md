@@ -1,5 +1,6 @@
 mod encoder;
-mod keywords;
 mod embedding;
+mod keywords;
+mod model;
 
 pub use encoder::{Encoder, Model};
