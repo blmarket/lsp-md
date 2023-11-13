@@ -64,7 +64,7 @@ actions. Not sure how to make it follow-up the document changes properly."#;
 
     #[test]
     fn test_using_module() -> anyhow::Result<()> {
-        let models = super::super::model::BertModels::default();
+        let models = super::super::model::BertModel::default();
         let _ = models.extract(TEST_SECTION);
         Ok(())
     }

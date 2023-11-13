@@ -10,12 +10,12 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
-    find_similar, find_similar2, query_section_titles, Document, BertModels,
+    find_similar, find_similar2, query_section_titles, Document, BertModel,
 };
 
 pub struct Backend {
     client: Client,
-    encoder: Mutex<BertModels>,
+    encoder: Mutex<BertModel>,
     document_map: DashMap<String, Rope>,
     section_map: DashMap<String, Document>,
 }
@@ -236,7 +236,7 @@ impl Backend {
     pub fn new(client: Client) -> Self {
         Backend {
             client,
-            encoder: Mutex::new(BertModels::default()),
+            encoder: Mutex::new(BertModel::default()),
             document_map: DashMap::new(),
             section_map: DashMap::new(),
         }

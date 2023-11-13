@@ -11,11 +11,11 @@ use super::{
     Encoder,
 };
 
-pub struct BertModels {
+pub struct BertModel {
     model: KeywordExtractionModel<'static>,
 }
 
-impl Default for BertModels {
+impl Default for BertModel {
     fn default() -> Self {
         let model = KeywordExtractionModel::new(KeywordExtractionConfig {
             sentence_embeddings_config: SentenceEmbeddingsConfig::from(
@@ -28,7 +28,7 @@ impl Default for BertModels {
     }
 }
 
-impl Encoder for BertModels {
+impl Encoder for BertModel {
     fn encode_batch(
         &self,
         sentences: &[&str],
@@ -46,7 +46,7 @@ impl Encoder for BertModels {
     }
 }
 
-impl Keywords for BertModels {
+impl Keywords for BertModel {
     fn extract_batch(
         &self,
         texts: &[&str],
@@ -67,7 +67,7 @@ mod tests {
     
     #[test]
     fn test_local_model_encode() -> anyhow::Result<()> {
-        let model = BertModels::default();
+        let model = BertModel::default();
         let sentences =
             vec!["This is a test sentence.", "This is another test sentence."];
         let embeddings = model.encode_batch(&sentences)?;
@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn test_local_model_encode_single() -> anyhow::Result<()> {
-        let model = BertModels::default();
+        let model = BertModel::default();
         let sentence = "This is a test sentence.";
         let _ = model.encode(sentence)?;
         Ok(())
@@ -90,7 +90,7 @@ mod tests {
     #[tokio::test]
     async fn test_load_model_within_tokio() -> anyhow::Result<()> {
         let model =
-            tokio::task::spawn_blocking(|| BertModels::default()).await?;
+            tokio::task::spawn_blocking(|| BertModel::default()).await?;
         let embedding = model.encode("This is a test sentence.")?;
         let zero = Embedding::new(vec![1f32; 384]);
         assert!(zero.dist(&embedding) > 0.1);

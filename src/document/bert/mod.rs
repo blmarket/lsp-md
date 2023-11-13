@@ -4,4 +4,4 @@ mod keywords;
 mod model;
 
 pub use encoder::Encoder;
-pub use model::BertModels;
+pub use model::BertModel;
