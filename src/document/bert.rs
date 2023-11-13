@@ -52,7 +52,10 @@ impl Encoder for Model {
     }
 }
 
-impl Encoder for Mutex<Model> {
+impl<T> Encoder for Mutex<T>
+where
+    T: Encoder,
+{
     fn encode_batch(
         &self,
         sentences: &[&str],
