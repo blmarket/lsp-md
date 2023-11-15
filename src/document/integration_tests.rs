@@ -32,7 +32,7 @@ fn test_find_similar() -> anyhow::Result<()> {
         Url::from_str("test://file")?,
         &document,
         &model,
-        Position::new(1, 0),
+        &Position::new(1, 0),
     );
 
     dbg!(tmp);

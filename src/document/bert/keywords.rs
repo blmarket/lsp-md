@@ -1,3 +1,8 @@
+use std::sync::Mutex;
+
+use serde::Serialize;
+
+#[derive(Serialize, Debug)]
 pub struct Keyword {
     pub score: f32,
     pub text: String,
@@ -21,6 +26,15 @@ pub trait Keywords {
     fn extract(&self, text: &str) -> anyhow::Result<Vec<Keyword>> {
         self.extract_batch(&[text])
             .map(|v| v.into_iter().next().unwrap())
+    }
+}
+
+impl<T> Keywords for Mutex<T> where T: Keywords {
+    fn extract_batch(
+        &self,
+        texts: &[&str],
+    ) -> anyhow::Result<Vec<Vec<Keyword>>> {
+        self.lock().unwrap().extract_batch(texts)
     }
 }
 

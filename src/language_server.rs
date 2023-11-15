@@ -8,7 +8,7 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
-    find_similar, query_section_titles, BertModel, Document,
+    extract_keywords, find_similar, query_section_titles, BertModel, Document,
 };
 
 pub struct Backend {
@@ -35,7 +35,10 @@ impl LanguageServer for Backend {
                     resolve_provider: Some(false),
                 }),
                 execute_command_provider: Some(ExecuteCommandOptions {
-                    commands: vec!["lsp_md/searchSimilar".to_string()],
+                    commands: vec![
+                        String::from("lsp_md/searchSimilar"),
+                        String::from("lsp_md/keywords"),
+                    ],
                     work_done_progress_options: Default::default(),
                 }),
                 ..ServerCapabilities::default()
@@ -157,8 +160,19 @@ impl LanguageServer for Backend {
                     loc.uri.clone(),
                     self.section_map.get(loc.uri.as_str()).unwrap().value(),
                     &self.encoder,
-                    loc.range.start
+                    &loc.range.start
                 ))))
+            },
+            "lsp_md/keywords" => {
+                let loc: Location =
+                    serde_json::from_value(params.arguments[0].to_owned())
+                        .unwrap();
+                Ok(Some(json!(extract_keywords(
+                    self.section_map.get(loc.uri.as_str()).unwrap().value(),
+                    &self.encoder,
+                    &loc.range.start,
+                )
+                .unwrap())))
             },
             _ => {
                 self.client

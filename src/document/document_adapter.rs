@@ -11,14 +11,14 @@ pub trait DocumentAdapter: BasicDocument {
         Some(Position::new(acc.0 - 1, acc.1 as u32))
     }
 
-    fn position_to_offset(&self, position: Position) -> Option<usize> {
+    fn position_to_offset(&self, position: &Position) -> Option<usize> {
         let lines = self.contents().lines().take((position.line) as usize);
         let acc = lines.fold(0, |acc, v| acc + v.len() + 1);
 
         Some(acc + position.character as usize)
     }
 
-    fn position_to_section(&self, position: Position) -> Option<usize> {
+    fn position_to_section(&self, position: &Position) -> Option<usize> {
         let offset = self.position_to_offset(position)?;
         self.sections()
             .iter()
@@ -75,7 +75,7 @@ Content of section 2...
         assert_eq!(Position::new(7, 0), doc.offset_to_position(32).unwrap());
         assert_eq!(Position::new(7, 12), doc.offset_to_position(44).unwrap());
 
-        assert_eq!(9, doc.position_to_offset(Position::new(1, 8)).unwrap());
-        assert_eq!(32, doc.position_to_offset(Position::new(7, 0)).unwrap());
+        assert_eq!(9, doc.position_to_offset(&Position::new(1, 8)).unwrap());
+        assert_eq!(32, doc.position_to_offset(&Position::new(7, 0)).unwrap());
     }
 }

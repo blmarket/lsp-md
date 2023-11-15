@@ -16,7 +16,7 @@ pub fn find_similar<D>(
     uri: Url,
     doc: &D,
     enc: &impl Encoder,
-    pos: Position,
+    pos: &Position,
 ) -> Vec<ScoredLocation>
 where
     D: DocumentAdapter + BasicDocumentExt,
