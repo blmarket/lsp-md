@@ -36,7 +36,7 @@ impl LanguageServer for Backend {
                     resolve_provider: Some(false),
                 }),
                 execute_command_provider: Some(ExecuteCommandOptions {
-                    commands: vec!["dummy.do_something".to_string()],
+                    commands: vec!["lsp_md/searchSimilar".to_string()],
                     work_done_progress_options: Default::default(),
                 }),
                 ..ServerCapabilities::default()
@@ -138,7 +138,7 @@ impl LanguageServer for Backend {
                     range: r,
                     command: Some(Command {
                         title: "Search similar documents".to_string(),
-                        command: "dummy.do_something".to_string(),
+                        command: "lsp_md/searchSimilar".to_string(),
                         arguments: Some(vec![json!(Location::new(
                             uri.clone(),
                             r
@@ -185,17 +185,10 @@ impl LanguageServer for Backend {
             .await;
 
         match params.command.as_str() {
-            "dummy.do_something" => {
-                self.client
-                    .log_message(MessageType::INFO, "dummy.do_something")
-                    .await;
-                dbg!(&params);
+            "lsp_md/searchSimilar" => {
                 let loc: Location =
                     serde_json::from_value(params.arguments[0].to_owned())
                         .unwrap();
-                self.client
-                    .log_message(MessageType::INFO, format!("loc: {:?}", &loc))
-                    .await;
                 Ok(Some(json!(find_similar2(
                     loc.uri.clone(),
                     self.section_map.get(loc.uri.as_str()).unwrap().value(),
