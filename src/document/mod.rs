@@ -6,6 +6,4 @@ mod similar_notes;
 
 pub use bert::{BertModel, Encoder};
 pub use document::Document;
-pub use similar_notes::{
-    find_similar, query_section_titles, ScoredLocation,
-};
+pub use similar_notes::{find_similar, query_section_titles, ScoredLocation};
