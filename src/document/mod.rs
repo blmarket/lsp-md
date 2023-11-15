@@ -1,4 +1,5 @@
 mod bert;
+mod document_adapter;
 mod document;
 #[cfg(test)]
 mod integration_tests;

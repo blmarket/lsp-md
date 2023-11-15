@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use tower_lsp::lsp_types::{Location, Position, Range, Url};
 
-use super::document::{BasicDocumentExt, DocumentAdapter};
+use super::document::BasicDocumentExt;
+use super::document_adapter::DocumentAdapter;
 use super::Encoder;
 
 #[derive(Debug, Serialize, Deserialize)]
