@@ -2,10 +2,8 @@ use std::sync::Mutex;
 
 use dashmap::DashMap;
 use ropey::Rope;
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tower_lsp::jsonrpc::Result;
-use tower_lsp::lsp_types::notification::Notification;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
@@ -215,16 +213,6 @@ impl LanguageServer for Backend {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct InlayHintParams {
-    path: String,
-}
-
-enum CustomNotification {}
-impl Notification for CustomNotification {
-    type Params = InlayHintParams;
-    const METHOD: &'static str = "custom/notification";
-}
 struct TextDocumentItem {
     uri: Url,
     text: String,
