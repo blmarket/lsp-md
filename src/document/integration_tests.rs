@@ -5,7 +5,7 @@ use rust_bert::pipelines::sentence_embeddings::{
 };
 use tower_lsp::lsp_types::{Url, Position};
 
-use crate::document::find_similar2;
+use crate::document::find_similar;
 
 use super::{BertModel, Document};
 
@@ -28,7 +28,7 @@ fn prepare_subject() -> anyhow::Result<TestSubject> {
 fn test_find_similar() -> anyhow::Result<()> {
     let TestSubject { model, document } = prepare_subject()?;
 
-    let tmp = find_similar2(Url::from_str("test://file")?, &document, &model, Position::new(1, 0));
+    let tmp = find_similar(Url::from_str("test://file")?, &document, &model, Position::new(1, 0));
 
     dbg!(tmp);
 

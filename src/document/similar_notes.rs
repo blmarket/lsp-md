@@ -11,7 +11,7 @@ pub struct ScoredLocation {
     pub location: Location,
 }
 
-pub fn find_similar2<D>(
+pub fn find_similar<D>(
     uri: Url,
     doc: &D,
     enc: &impl Encoder,

@@ -8,7 +8,7 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
-    find_similar2, query_section_titles, BertModel, Document,
+    find_similar, query_section_titles, BertModel, Document,
 };
 
 pub struct Backend {
@@ -153,7 +153,7 @@ impl LanguageServer for Backend {
                 let loc: Location =
                     serde_json::from_value(params.arguments[0].to_owned())
                         .unwrap();
-                Ok(Some(json!(find_similar2(
+                Ok(Some(json!(find_similar(
                     loc.uri.clone(),
                     self.section_map.get(loc.uri.as_str()).unwrap().value(),
                     &self.encoder,
