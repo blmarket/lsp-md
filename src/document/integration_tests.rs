@@ -1,11 +1,12 @@
-use std::fs;
+use std::{fs, str::FromStr};
 
 use rust_bert::pipelines::sentence_embeddings::{
     SentenceEmbeddingsBuilder, SentenceEmbeddingsModelType,
 };
-use tower_lsp::lsp_types::Position;
+use tower_lsp::lsp_types::{Url, Position};
 
-use super::similar_notes::find_similar;
+use crate::document::find_similar2;
+
 use super::{BertModel, Document};
 
 struct TestSubject {
@@ -27,7 +28,7 @@ fn prepare_subject() -> anyhow::Result<TestSubject> {
 fn test_find_similar() -> anyhow::Result<()> {
     let TestSubject { model, document } = prepare_subject()?;
 
-    let tmp = find_similar(&document, &model, Position::new(2, 0));
+    let tmp = find_similar2(Url::from_str("test://file")?, &document, &model, Position::new(1, 0));
 
     dbg!(tmp);
 

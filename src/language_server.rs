@@ -8,7 +8,7 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
-    find_similar, find_similar2, query_section_titles, BertModel, Document,
+    find_similar2, query_section_titles, BertModel, Document,
 };
 
 pub struct Backend {
@@ -31,7 +31,6 @@ impl LanguageServer for Backend {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
                     TextDocumentSyncKind::FULL,
                 )),
-                references_provider: Some(OneOf::Left(true)),
                 code_lens_provider: Some(CodeLensOptions {
                     resolve_provider: Some(false),
                 }),
@@ -85,41 +84,6 @@ impl LanguageServer for Backend {
         self.client
             .log_message(MessageType::INFO, "file closed!")
             .await;
-    }
-
-    async fn references(
-        &self,
-        params: ReferenceParams,
-    ) -> Result<Option<Vec<Location>>> {
-        self.client
-            .log_message(
-                MessageType::INFO,
-                format!(
-                    "references: {:?}",
-                    params.text_document_position.position
-                ),
-            )
-            .await;
-
-        let uri = params.text_document_position.text_document.uri;
-        let entry = self.section_map.get(&uri.to_string()).unwrap();
-
-        let ranges = find_similar(
-            entry.value(),
-            &self.encoder,
-            params.text_document_position.position,
-        );
-        self.client
-            .log_message(
-                MessageType::INFO,
-                format!("references:: result: {:?}", ranges),
-            )
-            .await;
-
-        Ok(ranges
-            .into_iter()
-            .map(|r| Some(Location::new(uri.clone(), r)))
-            .collect::<Option<Vec<Location>>>())
     }
 
     async fn code_lens(
