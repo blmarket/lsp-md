@@ -1,9 +1,8 @@
 use tower_lsp::lsp_types::Position;
 
-use super::{
-    bert::{Keyword, Keywords}, document::BasicDocumentExt,
-    document_adapter::DocumentAdapter,
-};
+use super::bert::{Keyword, Keywords};
+use super::document::BasicDocumentExt;
+use super::document_adapter::DocumentAdapter;
 
 #[allow(dead_code)]
 pub fn extract_keywords<D>(
@@ -25,10 +24,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::document::{bert::BertModel, Document};
-
     use super::*;
-    
+    use crate::document::bert::BertModel;
+    use crate::document::Document;
+
     const BUF: &'static str = r#"
 # Section 1
 
@@ -47,7 +46,7 @@ Content of section 2...
         let doc = Document::parse(BUF.to_string())?;
         let pos = Position::new(1, 0);
         let enc = BertModel::default();
-        
+
         extract_keywords(&doc, &enc, &pos)?;
 
         Ok(())

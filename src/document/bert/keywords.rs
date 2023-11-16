@@ -29,7 +29,10 @@ pub trait Keywords {
     }
 }
 
-impl<T> Keywords for Mutex<T> where T: Keywords {
+impl<T> Keywords for Mutex<T>
+where
+    T: Keywords,
+{
     fn extract_batch(
         &self,
         texts: &[&str],
