@@ -27,9 +27,9 @@ impl Embedding {
     pub fn dist(&self, other: &Self) -> f32 {
         let mut sum = 0.0;
         for i in 0..384 {
-            sum += (self.0[i] - other.0[i]).powi(2);
+            sum += self.0[i] * other.0[i]
         }
-        sum.sqrt()
+        sum
     }
 }
 
