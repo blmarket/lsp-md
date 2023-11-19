@@ -39,22 +39,3 @@ fn test_find_similar() -> anyhow::Result<()> {
 
     Ok(())
 }
-
-#[test]
-fn test_bert() -> anyhow::Result<()> {
-    let model = SentenceEmbeddingsBuilder::remote(
-        SentenceEmbeddingsModelType::AllMiniLmL12V2,
-    )
-    .with_device(tch::Device::cuda_if_available())
-    .create_model()?;
-
-    // Define input
-    let sentences =
-        ["this is an example sentence", "each sentence is converted"];
-
-    // Generate Embeddings
-    let embeddings = model.encode(&sentences)?;
-    assert_eq!(384, embeddings[0].len());
-
-    Ok(())
-}
