@@ -1,11 +1,13 @@
 use std::ops::Range;
 
 use regex::RegexBuilder;
+use ropey::Rope;
 
 use super::document_adapter::DocumentAdapter;
 
 #[derive(Debug, PartialEq)]
 pub struct Document {
+    rope: Rope,
     text: String,
     sections: Vec<Section>,
 }
@@ -53,6 +55,7 @@ impl DocumentAdapter for Document {}
 
 impl Document {
     pub fn parse(text: String) -> anyhow::Result<Self> {
+        let rope = Rope::from_str(&text);
         let re = RegexBuilder::new(r"^##? (.*)$").multi_line(true).build()?;
         let mut sections: Vec<Section> = Vec::new();
         let mut prev_title: Range<usize> = 0..0;
@@ -73,7 +76,11 @@ impl Document {
             });
         }
 
-        Ok(Document { sections, text })
+        Ok(Document {
+            text,
+            rope,
+            sections,
+        })
     }
 }
 
@@ -97,20 +104,17 @@ Content of section 2...
     #[test]
     fn test_parse() {
         assert_eq!(
-            Document {
-                text: BUF.to_string(),
-                sections: vec![
-                    Section {
-                        title: 1..12,
-                        range: 1..32
-                    },
-                    Section {
-                        title: 32..44,
-                        range: 32..85
-                    }
-                ]
-            },
-            Document::parse(BUF.to_string()).unwrap()
+            vec![
+                Section {
+                    title: 1..12,
+                    range: 1..32
+                },
+                Section {
+                    title: 32..44,
+                    range: 32..85
+                }
+            ],
+            Document::parse(BUF.to_string()).unwrap().sections,
         );
     }
 }
