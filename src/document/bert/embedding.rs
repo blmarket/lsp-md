@@ -24,7 +24,9 @@ impl Embedding {
         Embedding(arr)
     }
 
-    pub fn dist(&self, other: &Self) -> f32 {
+    // Calculate cosine similarity. As the vectors are normalized, this is
+    // equivalent to the dot product.
+    pub fn cos(&self, other: &Self) -> f32 {
         let mut sum = 0.0;
         for i in 0..384 {
             sum += self.0[i] * other.0[i]

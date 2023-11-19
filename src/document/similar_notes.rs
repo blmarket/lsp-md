@@ -30,7 +30,7 @@ where
         .enumerate()
         .map(|(i, _)| {
             let embedding = enc.encode(doc.text(i).unwrap()).unwrap();
-            let dist = embedding.dist(&current_section_embedding);
+            let dist = embedding.cos(&current_section_embedding);
             (dist, i)
         })
         .collect();

@@ -70,7 +70,7 @@ mod tests {
         assert_eq!(embeddings.len(), 2);
 
         let embedding = model.encode(&sentences[0])?;
-        assert!(embeddings[0].dist(&embedding) < 0.001f32);
+        assert!(embeddings[0].cos(&embedding) < 0.001f32);
 
         Ok(())
     }
@@ -89,7 +89,7 @@ mod tests {
             tokio::task::spawn_blocking(|| BertModel::default()).await?;
         let embedding = model.encode("This is a test sentence.")?;
         let zero = Embedding::new(vec![1f32; 384]);
-        assert!(zero.dist(&embedding) > 0.1);
+        assert!(zero.cos(&embedding) > 0.1);
         Ok(())
     }
 }

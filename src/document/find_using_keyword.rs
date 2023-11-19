@@ -23,7 +23,7 @@ where
             let embedding = model
                 .encode(doc.text(i).expect("should have section"))
                 .expect("should calculate embedding");
-            let dist = embedding.dist(&word_embedding);
+            let dist = embedding.cos(&word_embedding);
             ScoredLocation {
                 score: dist,
                 title: doc.title(i).expect("should have section").to_string(),
