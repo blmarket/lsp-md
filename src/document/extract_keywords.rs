@@ -1,20 +1,23 @@
+use std::borrow::Cow;
+
 use tower_lsp::lsp_types::Position;
 
 use super::bert::{Keyword, Keywords};
-use super::document::BasicDocumentExt;
-use super::document_adapter::DocumentAdapter;
+use super::document::DocumentExt;
+use super::document_adapter::DocumentLsp;
 
-pub fn extract_keywords<D>(
-    doc: &D,
+pub fn extract_keywords<'a, D>(
+    doc: &'a D,
     enc: &impl Keywords,
     pos: &Position,
 ) -> anyhow::Result<Vec<Keyword>>
 where
-    D: DocumentAdapter + BasicDocumentExt,
+    D: DocumentLsp + DocumentExt<'a>,
 {
     let current_section_idx =
         doc.position_to_section(pos).expect("Cannot find section");
-    let keywords = enc.extract(doc.text(current_section_idx)?)?;
+    let text: Cow<'a, str> = DocumentExt::text(doc, current_section_idx)?.into();
+    let keywords = enc.extract(&text)?;
 
     Ok(keywords)
 }

@@ -1,17 +1,19 @@
+use std::borrow::Cow;
+
 use tower_lsp::lsp_types::{Location, Url};
 
-use super::document::BasicDocumentExt;
-use super::document_adapter::DocumentAdapter;
+use super::document::DocumentExt;
+use super::document_adapter::DocumentLsp;
 use super::{Encoder, ScoredLocation};
 
-pub fn find_using_keyword<D>(
+pub fn find_using_keyword<'a, D>(
     uri: Url,
     model: &impl Encoder,
-    doc: &D,
+    doc: &'a D,
     keyword: &str,
 ) -> Vec<ScoredLocation>
 where
-    D: DocumentAdapter + BasicDocumentExt,
+    D: DocumentLsp + DocumentExt<'a>,
 {
     let word_embedding = model.encode(keyword).expect("should calculate embedding");
     let mut candidates = doc
@@ -20,13 +22,15 @@ where
         .enumerate()
         .map(|(i, _)| {
             // FIXME: use batch?
+            let text = DocumentExt::text(doc, i).expect("should have section");
+            let title = DocumentExt::title(doc, i).expect("should have section");
             let embedding = model
-                .encode(doc.text(i).expect("should have section"))
+                .encode(Into::<Cow<'a, str>>::into(text))
                 .expect("should calculate embedding");
             let dist = embedding.cos(&word_embedding);
             ScoredLocation {
                 score: dist,
-                title: doc.title(i).expect("should have section").to_string(),
+                title: title.into(),
                 location: Location {
                     uri: uri.clone(),
                     range: doc

@@ -1,8 +1,10 @@
+use std::borrow::Cow;
+
 use serde::{Deserialize, Serialize};
 use tower_lsp::lsp_types::{Location, Position, Range, Url};
 
-use super::document::BasicDocumentExt;
-use super::document_adapter::DocumentAdapter;
+use super::document::DocumentExt;
+use super::document_adapter::DocumentLsp;
 use super::Encoder;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -12,24 +14,26 @@ pub struct ScoredLocation {
     pub location: Location,
 }
 
-pub fn find_similar<D>(
+pub fn find_similar<'a, D>(
     uri: Url,
-    doc: &D,
+    doc: &'a D,
     enc: &impl Encoder,
     pos: &Position,
 ) -> Vec<ScoredLocation>
 where
-    D: DocumentAdapter + BasicDocumentExt,
+    D: DocumentLsp + DocumentExt<'a>,
 {
     let current_section_idx = doc.position_to_section(pos).unwrap();
+    let text: Cow<'a, str> = DocumentExt::text(doc, current_section_idx).expect("should have section").into();
     let current_section_embedding =
-        enc.encode(doc.text(current_section_idx).unwrap()).unwrap();
+        enc.encode(text).unwrap();
     let mut sections: Vec<_> = doc
         .sections()
         .into_iter()
         .enumerate()
         .map(|(i, _)| {
-            let embedding = enc.encode(doc.text(i).unwrap()).unwrap();
+            let t2: Cow<'a, str> = DocumentExt::text(doc, i).expect("should have section").into();
+            let embedding = enc .encode(t2) .unwrap();
             let dist = embedding.cos(&current_section_embedding);
             (dist, i)
         })
@@ -39,10 +43,11 @@ where
         .into_iter()
         .take(11)
         .map(|(score, i)| {
+            let title = DocumentExt::title(doc, i).expect("should have section");
             let range = doc.section_to_title_range(i).unwrap();
             ScoredLocation {
                 score,
-                title: doc.title(i).unwrap().to_string(),
+                title: title.into(),
                 location: Location {
                     uri: uri.clone(),
                     range,
@@ -54,7 +59,7 @@ where
 
 pub fn query_section_titles<D>(doc: &D) -> Vec<Range>
 where
-    D: DocumentAdapter,
+    D: DocumentLsp,
 {
     (0..doc.sections().len())
         .map(|s| doc.section_to_title_range(s).unwrap())

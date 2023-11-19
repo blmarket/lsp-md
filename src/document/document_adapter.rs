@@ -2,22 +2,12 @@ use tower_lsp::lsp_types::{Position, Range};
 
 use super::document::BasicDocument;
 
-pub trait DocumentAdapter: BasicDocument {
-    fn offset_to_position(&self, offset: usize) -> Option<Position> {
-        // FIXME: improve performance by indexing all newlines
-        let lines = self.contents()[0..offset].split('\n');
-        let acc = lines.fold((0, 0), |(line, _), v| (line + 1, v.len()));
+pub trait LspAdapter {
+    fn offset_to_position(&self, offset: usize) -> Option<Position>;
+    fn position_to_offset(&self, position: &Position) -> Option<usize>;
+}
 
-        Some(Position::new(acc.0 - 1, acc.1 as u32))
-    }
-
-    fn position_to_offset(&self, position: &Position) -> Option<usize> {
-        let lines = self.contents().lines().take((position.line) as usize);
-        let acc = lines.fold(0, |acc, v| acc + v.len() + 1);
-
-        Some(acc + position.character as usize)
-    }
-
+pub trait DocumentLsp: BasicDocument + LspAdapter {
     fn position_to_section(&self, position: &Position) -> Option<usize> {
         let offset = self.position_to_offset(position)?;
         self.sections()
@@ -63,7 +53,7 @@ Content of section 2...
 
     #[test]
     fn test_offset_conversion() {
-        use super::DocumentAdapter;
+        use super::LspAdapter;
 
         let doc = Document::parse(BUF.to_string()).unwrap();
         assert_eq!(Position::new(0, 0), doc.offset_to_position(0).unwrap());

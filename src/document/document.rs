@@ -1,15 +1,38 @@
 use std::ops::Range;
 
 use regex::RegexBuilder;
-use ropey::Rope;
+use ropey::{Rope, RopeSlice};
+use tower_lsp::lsp_types::Position;
 
-use super::document_adapter::DocumentAdapter;
+use super::document_adapter::{DocumentLsp, LspAdapter};
 
 #[derive(Debug, PartialEq)]
 pub struct Document {
     rope: Rope,
-    text: String,
     sections: Vec<Section>,
+}
+
+impl LspAdapter for Document {
+    fn offset_to_position(
+        &self,
+        offset: usize,
+    ) -> Option<tower_lsp::lsp_types::Position> {
+        let slice = self.rope.byte_slice(0..offset);
+        let row = slice.len_lines() - 1;
+        let col = slice.get_line(row)?.len_chars();
+        Some(Position::new(row as u32, col as u32))
+    }
+
+    fn position_to_offset(
+        &self,
+        position: &tower_lsp::lsp_types::Position,
+    ) -> Option<usize> {
+        // FIXME: It will be wrong if the line has multi-byte characters.
+        self.rope
+            .try_line_to_char(position.line as usize)
+            .map(|v| v + position.character as usize)
+            .ok()
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -19,39 +42,41 @@ pub struct Section {
 }
 
 pub trait BasicDocument {
-    fn contents(&self) -> &str;
     fn sections(&self) -> &[Section];
 }
 
-pub trait BasicDocumentExt: BasicDocument {
-    fn title(&self, index: usize) -> anyhow::Result<&str> {
-        self.sections()
+pub trait DocumentExt<'a> {
+    fn title(&'a self, index: usize) -> anyhow::Result<RopeSlice<'a>>;
+    fn text(&'a self, index: usize) -> anyhow::Result<RopeSlice<'a>>;
+}
+
+impl<'a> DocumentExt<'a> for Document {
+    fn title(&'a self, index: usize) -> anyhow::Result<RopeSlice<'a>> {
+        let section = self
+            .sections()
             .get(index)
-            .map(|v| &self.contents()[v.title.clone()])
-            .ok_or(anyhow::anyhow!("index out of range"))
+            .ok_or(anyhow::anyhow!("index out of range"))?;
+        Ok(self.rope.byte_slice(section.title.clone()))
     }
 
-    fn text(&self, index: usize) -> anyhow::Result<&str> {
-        self.sections()
+    fn text(&'a self, index: usize) -> anyhow::Result<RopeSlice<'a>> {
+        let section = self
+            .sections()
             .get(index)
-            .map(|v| &self.contents()[v.range.clone()])
-            .ok_or(anyhow::anyhow!("index out of range"))
+            .ok_or(anyhow::anyhow!("index out of range"))?;
+        Ok(self
+            .rope
+            .byte_slice(section.range.clone()))
     }
 }
 
 impl BasicDocument for Document {
-    fn contents(&self) -> &str {
-        &self.text
-    }
-
     fn sections(&self) -> &[Section] {
         &self.sections
     }
 }
 
-impl BasicDocumentExt for Document {}
-
-impl DocumentAdapter for Document {}
+impl DocumentLsp for Document {}
 
 impl Document {
     pub fn parse(text: String) -> anyhow::Result<Self> {
@@ -76,11 +101,7 @@ impl Document {
             });
         }
 
-        Ok(Document {
-            text,
-            rope,
-            sections,
-        })
+        Ok(Document { rope, sections })
     }
 }
 
