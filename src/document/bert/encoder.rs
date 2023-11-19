@@ -8,7 +8,10 @@ pub trait Encoder {
         sentences: &[S],
     ) -> anyhow::Result<Vec<Embedding>>;
 
-    fn encode(&self, sentences: &str) -> anyhow::Result<Embedding> {
+    fn encode<S: AsRef<str> + Sync>(
+        &self,
+        sentences: S,
+    ) -> anyhow::Result<Embedding> {
         self.encode_batch(&[sentences])
             .map(|v| v.into_iter().next().unwrap())
     }
