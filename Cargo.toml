@@ -15,5 +15,5 @@ dashmap = "5.1.0"
 log = "0.4.14"
 anyhow = "1"
 regex = "1"
-rust-bert = "0.21"
+rust-bert = { version = "0.21", features = ["download-libtorch"] }
 ciborium = "0.2"
