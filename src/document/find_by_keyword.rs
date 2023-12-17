@@ -6,7 +6,7 @@ use super::document::DocumentExt;
 use super::document_adapter::DocumentLsp;
 use super::{Encoder, ScoredLocation};
 
-pub fn find_using_keyword<'a, D>(
+pub fn find_by_keyword<'a, D>(
     uri: Url,
     model: &impl Encoder,
     doc: &'a D,
@@ -60,7 +60,7 @@ mod tests {
         let model = BertModel::default();
         let uri = Url::parse("file:///home/user/document.md").unwrap();
         let keyword = "keyword";
-        let results = find_using_keyword(uri, &model, &doc, keyword);
+        let results = find_by_keyword(uri, &model, &doc, keyword);
         assert_eq!(results.len(), 2);
         assert_eq!(results[0].title, "# Title");
         assert_eq!(results[1].title, "## Subtitle");

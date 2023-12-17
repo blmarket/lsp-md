@@ -1,9 +1,6 @@
 use std::fs;
 use std::str::FromStr;
 
-use rust_bert::pipelines::sentence_embeddings::{
-    SentenceEmbeddingsBuilder, SentenceEmbeddingsModelType,
-};
 use tower_lsp::lsp_types::{Position, Url};
 
 use super::{BertModel, Document};

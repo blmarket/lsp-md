@@ -2,14 +2,21 @@ use std::sync::Mutex;
 
 use dashmap::DashMap;
 use ropey::Rope;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
-    extract_keywords, find_similar, query_section_titles, BertModel, Document,
+    extract_keywords, find_similar, query_section_titles, BertModel, Document, find_by_keyword,
 };
+
+#[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
+struct KeywordQuery {
+    pub uri: Url,
+    pub keyword: String,
+}
 
 pub struct Backend {
     client: Client,
@@ -38,6 +45,7 @@ impl LanguageServer for Backend {
                     commands: vec![
                         String::from("lsp_md/searchSimilar"),
                         String::from("lsp_md/keywords"),
+                        String::from("lsp_md/findByKeyword"),
                     ],
                     work_done_progress_options: Default::default(),
                 }),
@@ -173,6 +181,15 @@ impl LanguageServer for Backend {
                     &loc.range.start,
                 )
                 .unwrap())))
+            },
+            "lsp_md/findByKeyword" => {
+                let query: KeywordQuery = serde_json::from_value(params.arguments[0].to_owned()).unwrap();
+                let doc = self.section_map.get(query.uri.as_str()).unwrap();
+                find_by_keyword(query.uri, 
+                    &self.encoder, 
+                    doc.value(), 
+                    &query.keyword);
+                Ok(None)
             },
             _ => {
                 self.client
