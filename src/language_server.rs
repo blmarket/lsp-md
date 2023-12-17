@@ -185,11 +185,11 @@ impl LanguageServer for Backend {
             "lsp_md/findByKeyword" => {
                 let query: KeywordQuery = serde_json::from_value(params.arguments[0].to_owned()).unwrap();
                 let doc = self.section_map.get(query.uri.as_str()).unwrap();
-                find_by_keyword(query.uri, 
+                let resp = find_by_keyword(query.uri, 
                     &self.encoder, 
                     doc.value(), 
                     &query.keyword);
-                Ok(None)
+                Ok(Some(json!(resp)))
             },
             _ => {
                 self.client
