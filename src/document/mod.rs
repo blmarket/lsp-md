@@ -13,3 +13,4 @@ pub use document::Document;
 pub use extract_keywords::extract_keywords;
 pub use find_by_keyword::find_by_keyword;
 pub use similar_notes::{find_similar, query_section_titles, ScoredLocation};
+pub use format::LspRangeFormat;

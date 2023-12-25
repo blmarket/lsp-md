@@ -1,7 +1,6 @@
 use std::sync::Mutex;
 
 use dashmap::DashMap;
-use ropey::Rope;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tower_lsp::jsonrpc::Result;
@@ -9,7 +8,7 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
-    extract_keywords, find_similar, query_section_titles, BertModel, Document, find_by_keyword,
+    extract_keywords, find_similar, query_section_titles, BertModel, Document, find_by_keyword, LspRangeFormat,
 };
 
 #[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
@@ -21,8 +20,7 @@ struct KeywordQuery {
 pub struct Backend {
     client: Client,
     encoder: Mutex<BertModel>,
-    document_map: DashMap<String, Rope>,
-    section_map: DashMap<String, Document>,
+    document_map: DashMap<String, Document>,
 }
 
 #[tower_lsp::async_trait]
@@ -41,6 +39,7 @@ impl LanguageServer for Backend {
                 code_lens_provider: Some(CodeLensOptions {
                     resolve_provider: Some(false),
                 }),
+                document_range_formatting_provider: Some(OneOf::Left(true)),
                 execute_command_provider: Some(ExecuteCommandOptions {
                     commands: vec![
                         String::from("lsp_md/searchSimilar"),
@@ -103,7 +102,7 @@ impl LanguageServer for Backend {
     ) -> Result<Option<Vec<CodeLens>>> {
         let uri = params.text_document.uri;
 
-        let entry = self.section_map.get(&uri.to_string()).unwrap();
+        let entry = self.document_map.get(&uri.to_string()).unwrap();
         let section_titles = query_section_titles(entry.value());
 
         let res = section_titles
@@ -166,7 +165,7 @@ impl LanguageServer for Backend {
                         .unwrap();
                 Ok(Some(json!(find_similar(
                     loc.uri.clone(),
-                    self.section_map.get(loc.uri.as_str()).unwrap().value(),
+                    self.document_map.get(loc.uri.as_str()).unwrap().value(),
                     &self.encoder,
                     &loc.range.start
                 ))))
@@ -176,7 +175,7 @@ impl LanguageServer for Backend {
                     serde_json::from_value(params.arguments[0].to_owned())
                         .unwrap();
                 Ok(Some(json!(extract_keywords(
-                    self.section_map.get(loc.uri.as_str()).unwrap().value(),
+                    self.document_map.get(loc.uri.as_str()).unwrap().value(),
                     &self.encoder,
                     &loc.range.start,
                 )
@@ -184,7 +183,7 @@ impl LanguageServer for Backend {
             },
             "lsp_md/findByKeyword" => {
                 let query: KeywordQuery = serde_json::from_value(params.arguments[0].to_owned()).unwrap();
-                let doc = self.section_map.get(query.uri.as_str()).unwrap();
+                let doc = self.document_map.get(query.uri.as_str()).unwrap();
                 let resp = find_by_keyword(query.uri, 
                     &self.encoder, 
                     doc.value(), 
@@ -198,6 +197,17 @@ impl LanguageServer for Backend {
                 Ok(None)
             },
         }
+    }
+
+    async fn range_formatting(
+        &self,
+        params: DocumentRangeFormattingParams,
+    ) -> Result<Option<Vec<TextEdit>>> {
+        let uri = params.text_document.uri.to_string();
+        let Some(doc) = self.document_map.get(&uri) else {
+            return Ok(None)
+        };
+        Ok(doc.value().format(params.range))
     }
 }
 
@@ -214,15 +224,11 @@ impl Backend {
             client,
             encoder: Mutex::new(BertModel::default()),
             document_map: DashMap::new(),
-            section_map: DashMap::new(),
         }
     }
 
     async fn on_change(&self, params: TextDocumentItem) {
-        let rope = ropey::Rope::from_str(&params.text);
-        self.document_map
-            .insert(params.uri.to_string(), rope.clone());
-        self.section_map.insert(
+        self.document_map.insert(
             params.uri.to_string(),
             Document::parse(params.text).unwrap(),
         );
