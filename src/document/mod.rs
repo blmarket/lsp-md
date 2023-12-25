@@ -6,6 +6,7 @@ mod find_by_keyword;
 #[cfg(test)]
 mod integration_tests;
 mod similar_notes;
+mod format;
 
 pub use bert::{BertModel, Encoder};
 pub use document::Document;
