@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{ops::Range, borrow::Cow};
 
 use regex::RegexBuilder;
 use ropey::{Rope, RopeSlice};
@@ -10,6 +10,16 @@ use super::document_adapter::{DocumentLsp, LspAdapter};
 pub struct Document {
     rope: Rope,
     sections: Vec<Section>,
+}
+
+pub trait SliceAccess {
+    fn slice<'a>(&'a self, r: Range<usize>) -> Cow<'a, str>;
+}
+
+impl SliceAccess for Document {
+    fn slice<'a>(&'a self, r: Range<usize>) -> Cow<'a, str> {
+        self.rope.get_byte_slice(r).map(|v| v.into()).unwrap()
+    }
 }
 
 impl LspAdapter for Document {
