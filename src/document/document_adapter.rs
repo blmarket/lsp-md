@@ -21,11 +21,11 @@ pub trait DocumentLsp: BasicDocument + LspAdapter {
         self.sections().get(index).map(|v| {
             let start = self.offset_to_position(v.title.start).unwrap();
             let end = self.offset_to_position(v.title.end).unwrap();
-            tower_lsp::lsp_types::Range::new(start, end)
+            Range::new(start, end)
         })
     }
-
-    fn section_titles(&self) -> Vec<tower_lsp::lsp_types::Range> {
+    
+    fn section_titles(&self) -> Vec<Range> {
         (0..self.sections().len())
             .map(|s| self.section_to_title_range(s).unwrap())
             .collect()
