@@ -15,7 +15,8 @@ pub fn find_by_keyword<'a, D>(
 where
     D: DocumentLsp + DocumentExt<'a>,
 {
-    let word_embedding = model.encode(keyword).expect("should calculate embedding");
+    let word_embedding =
+        model.encode(keyword).expect("should calculate embedding");
     let mut candidates = doc
         .sections()
         .into_iter()
@@ -23,7 +24,8 @@ where
         .map(|(i, _)| {
             // FIXME: use batch?
             let text = DocumentExt::text(doc, i).expect("should have section");
-            let title = DocumentExt::title(doc, i).expect("should have section");
+            let title =
+                DocumentExt::title(doc, i).expect("should have section");
             let embedding = model
                 .encode(Into::<Cow<'a, str>>::into(text))
                 .expect("should calculate embedding");
@@ -48,9 +50,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::document::{BertModel, Document};
-
     use super::*;
+    use crate::document::{BertModel, Document};
 
     #[test]
     fn test_find_using_keyword() -> anyhow::Result<()> {

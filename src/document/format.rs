@@ -1,6 +1,7 @@
 use tower_lsp::lsp_types::{Range, TextEdit};
 
-use super::{document::SliceAccess, document_adapter::LspAdapter};
+use super::document::SliceAccess;
+use super::document_adapter::LspAdapter;
 
 pub trait LspRangeFormat {
     fn format(&self, range: Range) -> Option<Vec<TextEdit>>;
@@ -43,11 +44,11 @@ where
                         let start = self
                             .offset_to_position(
                                 usize::try_from(
-                                    space2
-                                        + (offset_start as i32)
-                                        + (pos as i32)
-                                        - col
-                                        + 1,
+                                    space2 +
+                                        (offset_start as i32) +
+                                        (pos as i32) -
+                                        col +
+                                        1,
                                 )
                                 .unwrap(),
                             )
@@ -55,11 +56,11 @@ where
                         let end = self
                             .offset_to_position(
                                 usize::try_from(
-                                    space
-                                        + (offset_start as i32)
-                                        + (pos as i32)
-                                        - col
-                                        + 2,
+                                    space +
+                                        (offset_start as i32) +
+                                        (pos as i32) -
+                                        col +
+                                        2,
                                 )
                                 .unwrap(),
                             )

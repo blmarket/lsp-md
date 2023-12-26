@@ -8,7 +8,8 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
-    extract_keywords, find_similar, query_section_titles, BertModel, Document, find_by_keyword, LspRangeFormat,
+    extract_keywords, find_by_keyword, find_similar, query_section_titles,
+    BertModel, Document, LspRangeFormat,
 };
 
 #[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
@@ -182,12 +183,16 @@ impl LanguageServer for Backend {
                 .unwrap())))
             },
             "lsp_md/findByKeyword" => {
-                let query: KeywordQuery = serde_json::from_value(params.arguments[0].to_owned()).unwrap();
+                let query: KeywordQuery =
+                    serde_json::from_value(params.arguments[0].to_owned())
+                        .unwrap();
                 let doc = self.document_map.get(query.uri.as_str()).unwrap();
-                let resp = find_by_keyword(query.uri, 
-                    &self.encoder, 
-                    doc.value(), 
-                    &query.keyword);
+                let resp = find_by_keyword(
+                    query.uri,
+                    &self.encoder,
+                    doc.value(),
+                    &query.keyword,
+                );
                 Ok(Some(json!(resp)))
             },
             _ => {
@@ -205,7 +210,7 @@ impl LanguageServer for Backend {
     ) -> Result<Option<Vec<TextEdit>>> {
         let uri = params.text_document.uri.to_string();
         let Some(doc) = self.document_map.get(&uri) else {
-            return Ok(None)
+            return Ok(None);
         };
         Ok(doc.value().format(params.range))
     }

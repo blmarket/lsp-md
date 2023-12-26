@@ -24,7 +24,7 @@ pub trait DocumentLsp: BasicDocument + LspAdapter {
             Range::new(start, end)
         })
     }
-    
+
     fn section_titles(&self) -> Vec<Range> {
         (0..self.sections().len())
             .map(|s| self.section_to_title_range(s).unwrap())

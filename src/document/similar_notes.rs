@@ -24,16 +24,19 @@ where
     D: DocumentLsp + DocumentExt<'a>,
 {
     let current_section_idx = doc.position_to_section(pos).unwrap();
-    let text: Cow<'a, str> = DocumentExt::text(doc, current_section_idx).expect("should have section").into();
-    let current_section_embedding =
-        enc.encode(text).unwrap();
+    let text: Cow<'a, str> = DocumentExt::text(doc, current_section_idx)
+        .expect("should have section")
+        .into();
+    let current_section_embedding = enc.encode(text).unwrap();
     let mut sections: Vec<_> = doc
         .sections()
         .into_iter()
         .enumerate()
         .map(|(i, _)| {
-            let t2: Cow<'a, str> = DocumentExt::text(doc, i).expect("should have section").into();
-            let embedding = enc .encode(t2) .unwrap();
+            let t2: Cow<'a, str> = DocumentExt::text(doc, i)
+                .expect("should have section")
+                .into();
+            let embedding = enc.encode(t2).unwrap();
             let dist = embedding.cos(&current_section_embedding);
             (dist, i)
         })
@@ -43,7 +46,8 @@ where
         .into_iter()
         .take(11)
         .map(|(score, i)| {
-            let title = DocumentExt::title(doc, i).expect("should have section");
+            let title =
+                DocumentExt::title(doc, i).expect("should have section");
             let range = doc.section_to_title_range(i).unwrap();
             ScoredLocation {
                 score,

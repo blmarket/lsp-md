@@ -16,7 +16,8 @@ where
 {
     let current_section_idx =
         doc.position_to_section(pos).expect("Cannot find section");
-    let text: Cow<'a, str> = DocumentExt::text(doc, current_section_idx)?.into();
+    let text: Cow<'a, str> =
+        DocumentExt::text(doc, current_section_idx)?.into();
     let keywords = enc.extract(&text)?;
 
     Ok(keywords)

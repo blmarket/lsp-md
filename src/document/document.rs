@@ -1,4 +1,5 @@
-use std::{ops::Range, borrow::Cow};
+use std::borrow::Cow;
+use std::ops::Range;
 
 use regex::RegexBuilder;
 use ropey::{Rope, RopeSlice};
@@ -74,9 +75,7 @@ impl<'a> DocumentExt<'a> for Document {
             .sections()
             .get(index)
             .ok_or(anyhow::anyhow!("index out of range"))?;
-        Ok(self
-            .rope
-            .byte_slice(section.range.clone()))
+        Ok(self.rope.byte_slice(section.range.clone()))
     }
 }
 
