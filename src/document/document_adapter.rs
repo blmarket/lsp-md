@@ -55,7 +55,7 @@ Content of section 2...
     fn test_offset_conversion() {
         use super::LspAdapter;
 
-        let doc = Document::parse(BUF.to_string()).unwrap();
+        let doc = Document::parse(BUF).unwrap();
         assert_eq!(Position::new(0, 0), doc.offset_to_position(0).unwrap());
         assert_eq!(Position::new(1, 0), doc.offset_to_position(1).unwrap());
         assert_eq!(Position::new(1, 8), doc.offset_to_position(9).unwrap());

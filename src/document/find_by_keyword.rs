@@ -55,7 +55,7 @@ mod tests {
     #[test]
     fn test_find_using_keyword() -> anyhow::Result<()> {
         let doc = Document::parse(
-      "# Title\n\nThis is a document with a keyword.\n\n## Subtitle\n\nAnother keyword here.".to_string(),
+      "# Title\n\nThis is a document with a keyword.\n\n## Subtitle\n\nAnother keyword here.",
     )?;
         let model = BertModel::default();
         let uri = Url::parse("file:///home/user/document.md").unwrap();

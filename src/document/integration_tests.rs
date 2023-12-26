@@ -16,7 +16,7 @@ fn prepare_subject() -> anyhow::Result<TestSubject> {
 
     let contents = fs::read_to_string("examples/test.md")
         .expect("Something went wrong reading the file");
-    let document = Document::parse(contents)?;
+    let document = Document::parse(&contents)?;
 
     Ok(TestSubject { model, document })
 }

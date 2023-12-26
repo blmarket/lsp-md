@@ -89,7 +89,7 @@ impl BasicDocument for Document {
 impl DocumentLsp for Document {}
 
 impl Document {
-    pub fn parse(text: String) -> anyhow::Result<Self> {
+    pub fn parse(text: &str) -> anyhow::Result<Self> {
         let rope = Rope::from_str(&text);
         let re = RegexBuilder::new(r"^##? (.*)$").multi_line(true).build()?;
         let mut sections: Vec<Section> = Vec::new();
@@ -145,7 +145,7 @@ Content of section 2...
                     range: 32..85
                 }
             ],
-            Document::parse(BUF.to_string()).unwrap().sections,
+            Document::parse(BUF).unwrap().sections,
         );
     }
 }

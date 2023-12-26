@@ -230,7 +230,7 @@ impl Backend {
     async fn on_change(&self, params: TextDocumentItem) {
         self.document_map.insert(
             params.uri.to_string(),
-            Document::parse(params.text).unwrap(),
+            Document::parse(&params.text).unwrap(),
         );
     }
 }

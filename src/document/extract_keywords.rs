@@ -43,7 +43,7 @@ Content of section 2...
 
     #[test]
     fn test_extract_keywords() -> anyhow::Result<()> {
-        let doc = Document::parse(BUF.to_string())?;
+        let doc = Document::parse(BUF)?;
         let pos = Position::new(1, 0);
         let enc = BertModel::default();
 

@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_format() -> anyhow::Result<()> {
-        let src: String = r#"
+        let src = r#"
 # Section 1
 
 Some really long content which need to be formatted to have newline after HERE and another line after previous HERE
@@ -130,7 +130,7 @@ Some really long content which need to be formatted to have newline after HERE a
 
 Content of section 2...
 
-### Subsection"#.to_string();
+### Subsection"#;
 
         let doc = Document::parse(src).unwrap();
         let range = Range {
@@ -166,7 +166,7 @@ Content of section 2...
 
     #[test]
     fn format_should_ignore_one_big_line() -> anyhow::Result<()> {
-        let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisblahblahhaha1234567"#.to_string();
+        let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisblahblahhaha1234567"#;
         let doc = Document::parse(src).unwrap();
         assert_eq!(
             Some(vec![]),
@@ -186,7 +186,7 @@ Content of section 2...
 
     #[test]
     fn format_should_break_after_long_line() -> anyhow::Result<()> {
-        let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#.to_string();
+        let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;
         let doc = Document::parse(src).unwrap();
         assert_eq!(
             Some(vec![doc.edit(82, 83, "\n")]),
@@ -206,7 +206,7 @@ Content of section 2...
 
     #[test]
     fn format_should_break_single_line_into_multiple() -> anyhow::Result<()> {
-        let src = r#"a somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#.to_string();
+        let src = r#"a somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;
         let doc = Document::parse(src).unwrap();
         assert_eq!(
             Some(vec![doc.edit(1, 2, "\n"), doc.edit(84, 85, "\n"),]),
@@ -226,8 +226,9 @@ Content of section 2...
 
     #[test]
     #[ignore = "currently this test is failing"]
-    fn format_should_remove_whitespace_at_the_beginning() -> anyhow::Result<()> {
-        let src = r#" somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#.to_string();
+    fn format_should_remove_whitespace_at_the_beginning() -> anyhow::Result<()>
+    {
+        let src = r#" somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;
         let doc = Document::parse(src).unwrap();
         assert_eq!(
             Some(vec![doc.edit(0, 1, ""), doc.edit(83, 84, "\n"),]),
