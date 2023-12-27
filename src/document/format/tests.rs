@@ -220,3 +220,28 @@ fn process_section_should_format_url() {
         process_section(r#"a: https://someurl.com ahblahhaha1234567"#)
     );
 }
+
+#[test]
+fn process_section_bullet_items() {
+    let src = r#"
+- item 1
+- item 2
+  - subitem
+- item 3  
+  multiline content
+- item 4: https://someurl.com is good
+- item 5"#.trim();
+    assert_eq!(
+        r#"
+- item 1
+- item 2
+  - subitem
+- item 3  
+  multiline content
+- item 4:
+  https://someurl.com
+  is good
+- item 5"#.trim(),
+        process_section(src)
+    );
+}
