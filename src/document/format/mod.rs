@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests;
 mod treesitter;
+mod format_treesitter;
 
 use std::sync::OnceLock;
 
@@ -121,7 +122,7 @@ fn process_section(section: &str) -> String {
     }
     ret
 }
-    
+
 impl<T> LspRangeFormat for T
 where
     T: LspAdapter + SliceAccess,

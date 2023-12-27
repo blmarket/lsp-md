@@ -21,7 +21,7 @@ fn debug_walk(mut cursor: TreeCursor) {
     }
 }
 
-struct Running<'a>(TreeCursor<'a>);
+pub struct Running<'a>(TreeCursor<'a>);
 
 impl<'a> Running<'a> {
     fn step_into(&mut self) -> bool {
@@ -46,13 +46,13 @@ impl<'a> Running<'a> {
     }
 }
 
-enum Traversal<'a> {
+pub enum Traversal<'a> {
     Running(Running<'a>),
     Finished,
 }
 
 impl<'a> Traversal<'a> {
-    fn from_cursor<'b>(cursor: TreeCursor<'b>) -> Traversal<'b> {
+    pub fn from_cursor<'b>(cursor: TreeCursor<'b>) -> Traversal<'b> {
         Traversal::Running(Running(cursor))
     }
     
@@ -133,6 +133,8 @@ fn tree(buf: &[u8]) -> Tree {
 
     parser.parse(buf, None).expect("should parse markdown doc")
 }
+
+// TODO: Add mod tests with test configuration. and put all the tests in it.
 
 const BUF: &'static [u8] = br#"Title
 ---
