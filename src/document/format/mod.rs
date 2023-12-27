@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests;
+mod treesitter;
 
 use std::sync::OnceLock;
 
