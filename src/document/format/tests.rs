@@ -6,6 +6,21 @@ use super::*;
 
 struct TestDoc<'a>(&'a str);
 
+impl TestDoc<'_> {
+    #[allow(dead_code)] // Only used in tests.
+    fn apply_edits(&self, edits: &[TextEdit]) -> String {
+        let mut ret = String::with_capacity(self.0.len());
+        let mut last = 0;
+        for edit in edits {
+            ret.push_str(&self.0[last..self.position_to_offset(&edit.range.start).unwrap()]);
+            ret.push_str(&edit.new_text);
+            last = self.position_to_offset(&edit.range.end).unwrap();
+        }
+        ret.push_str(&self.0[last..]);
+        ret
+    }
+}
+
 impl<'a> SliceAccess for TestDoc<'a> {
     fn slice<'b>(&'b self, r: std::ops::Range<usize>) -> Cow<'b, str> {
         Cow::Borrowed(&self.0[r])
@@ -80,7 +95,7 @@ where
 }
 
 #[test]
-fn test_format() -> anyhow::Result<()> {
+fn test_format() {
     let src = r#"
 # Section 1
 
@@ -105,45 +120,29 @@ Content of section 2...
             character: 0,
         },
     };
+    
+    let expected = src.to_string().replace("HERE and", "HERE\nand");
 
     assert_eq!(
-        Some(vec![TextEdit {
-            range: Range {
-                start: Position {
-                    line: 3,
-                    character: 78
-                },
-                end: Position {
-                    line: 3,
-                    character: 79
-                }
-            },
-            new_text: "\n".to_string(),
-        }]),
-        doc.format(range)
+        expected,
+        doc.apply_edits(&doc.format(range).unwrap())
     );
-
-    Ok(())
 }
 
 #[test]
-fn format_should_ignore_one_big_line() -> anyhow::Result<()> {
+fn format_should_ignore_one_big_line() {
     let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisblahblahhaha1234567"#;
     let doc = TestDoc(src);
-    assert_eq!(
-        Some(vec![]),
-        doc.format(Range {
-            start: Position {
-                line: 0,
-                character: 0
-            },
-            end: Position {
-                line: 0,
-                character: 100
-            }
-        })
-    );
-    Ok(())
+    assert_eq!(src, doc.apply_edits(doc.format(Range {
+        start: Position {
+            line: 0,
+            character: 0
+        },
+        end: Position {
+            line: 0,
+            character: 100
+        }
+    }).unwrap().as_slice()));
 }
 
 #[test]
@@ -151,8 +150,8 @@ fn format_should_break_after_long_line() {
     let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;
     let doc = TestDoc(src);
     assert_eq!(
-        Some(vec![doc.edit(82, 83, "\n")]),
-        doc.format(Range {
+        src.to_string().replace("isb ahblah", "isb\nahblah"),
+        doc.apply_edits(&doc.format(Range {
             start: Position {
                 line: 0,
                 character: 0
@@ -161,7 +160,7 @@ fn format_should_break_after_long_line() {
                 line: 0,
                 character: 100
             }
-        })
+        }).unwrap())
     );
 }
 
@@ -170,8 +169,8 @@ fn format_should_break_single_line_into_multiple() -> anyhow::Result<()> {
     let src = r#"a somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;
     let doc = TestDoc(src);
     assert_eq!(
-        Some(vec![doc.edit(1, 2, "\n"), doc.edit(84, 85, "\n"),]),
-        doc.format(Range {
+        "a\nsomereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb\nahblahhaha1234567",
+        doc.apply_edits(&doc.format(Range {
             start: Position {
                 line: 0,
                 character: 0
@@ -180,7 +179,7 @@ fn format_should_break_single_line_into_multiple() -> anyhow::Result<()> {
                 line: 0,
                 character: 100
             }
-        })
+        }).unwrap())
     );
     Ok(())
 }
@@ -204,4 +203,20 @@ fn format_should_remove_whitespace_at_the_beginning() -> anyhow::Result<()> {
         })
     );
     Ok(())
+}
+
+#[test]
+fn process_section_should_format_properly() {
+    assert_eq!(
+        "a\nsomereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb\nahblahhaha1234567", 
+        process_section(r#"a somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#)
+    );
+}
+
+#[test]
+fn process_section_should_format_url() {
+    assert_eq!(
+        "a:\nhttps://someurl.com\nahblahhaha1234567", 
+        process_section(r#"a: https://someurl.com ahblahhaha1234567"#)
+    );
 }

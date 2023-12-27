@@ -19,7 +19,14 @@ fn paragraph_separator() -> &'static Regex {
 fn whitespace() -> &'static Regex {
     static REF: OnceLock<Regex> = OnceLock::new();
     return REF.get_or_init(|| {
-        Regex::new(r#"[ \n]+"#).unwrap()
+        Regex::new(r#"[^ \n]+"#).unwrap()
+    })
+}
+
+fn url() -> &'static Regex {
+    static REF: OnceLock<Regex> = OnceLock::new();
+    return REF.get_or_init(|| {
+        Regex::new(r#"(https?://[^\s]+)"#).unwrap()
     })
 }
 
@@ -27,18 +34,31 @@ pub trait LspRangeFormat {
     fn format(&self, range: Range) -> Option<Vec<TextEdit>>;
 }
 
-fn process_section(v: &mut Vec<TextEdit>, section: &str, offset: usize) {
-    let mut col = 0i32;
-    let mut space = -2i32;
-    let mut space2 = -2i32;
-    
+fn process_section(section: &str) -> String {
     let ws = whitespace();
     let words = ws.find_iter(section);
-    let mut word_offset = 0;
+    let mut ret = String::with_capacity(8192);
+    let mut line_len = 0;
     for m in words {
-        // FIXME: count unicode width of string here.
-        // TODO: Place word, add line break if it exceeds 80 characters.
+        let is_url = url().is_match(m.as_str());
+        if line_len != 0 && (line_len + m.as_str().len() > 80 || is_url) {
+            ret.pop();
+            ret.push('\n');
+            line_len = 0;
+        }
+        ret.push_str(m.as_str());
+        ret.push(' ');
+        line_len += m.as_str().len() + 1;
+        if is_url {
+            ret.pop();
+            ret.push('\n');
+            line_len = 0;
+        }
     }
+    if ret.len() > 0 {
+        ret.pop();
+    }
+    ret
 }
     
 impl<T> LspRangeFormat for T
@@ -58,71 +78,22 @@ where
             return None;
         };
 
-        let mut ret: Vec<TextEdit> = vec![];
+        let mut updated = String::with_capacity(8192);
         let slice = self.slice(offset_start..offset_end);
         
         let mut section_offset = 0;
         let sections = paragraph_separator().find_iter(&slice);
         for m in sections {
             let section = &slice[section_offset..m.start()];
-            process_section(&mut ret, section, offset_start + section_offset);
+            updated.push_str(&process_section(section).as_str());
+            updated.push_str(m.as_str());
             section_offset = m.end();
         }
-        
-        // for (pos, it) in slice.chars().enumerate() {
-        //     match it {
-        //         '\n' => {
-        //             space = -2;
-        //             space2 = -2;
-        //             col = 0;
-        //         },
-        //         ' ' => {
-        //             if space != col - 1 {
-        //                 space2 = col;
-        //             }
-        //             space = col;
-        //             col += 1;
-        //         },
-        //         _ => {
-        //             col += 1;
-        //             if col > 80 && space != -2 {
-        //                 let start = self
-        //                     .offset_to_position(
-        //                         usize::try_from(
-        //                             space2 +
-        //                                 (offset_start as i32) +
-        //                                 (pos as i32) -
-        //                                 col +
-        //                                 1,
-        //                         )
-        //                         .unwrap(),
-        //                     )
-        //                     .unwrap();
-        //                 let end = self
-        //                     .offset_to_position(
-        //                         usize::try_from(
-        //                             space +
-        //                                 (offset_start as i32) +
-        //                                 (pos as i32) -
-        //                                 col +
-        //                                 2,
-        //                         )
-        //                         .unwrap(),
-        //                     )
-        //                     .unwrap();
-        //                 ret.push(TextEdit {
-        //                     range: Range { start, end },
-        //                     new_text: "\n".to_string(),
-        //                 });
-        //                 col -= space + 1;
-        //                 space = -2;
-        //                 space2 = -2;
-        //             }
-        //         },
-        //     }
-        //     // dbg!(format!("{} {} {}", it, col, space));
-        // }
+        updated.push_str(&process_section(&slice[section_offset..]).as_str());
 
-        Some(ret)
+        Some(vec![TextEdit {
+            range,
+            new_text: updated,
+        }])
     }
 }
