@@ -2,6 +2,7 @@
 mod tests;
 mod treesitter;
 mod format_treesitter;
+mod util;
 
 use std::sync::OnceLock;
 
