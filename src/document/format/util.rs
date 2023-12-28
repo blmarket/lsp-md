@@ -1,4 +1,7 @@
-use std::borrow::Cow;
+use std::{
+    borrow::Cow,
+    ops::{Bound, RangeBounds},
+};
 
 use tower_lsp::lsp_types::{Position, Range, TextEdit};
 
@@ -25,8 +28,35 @@ impl TestDoc<'_> {
 }
 
 impl<'a> SliceAccess for TestDoc<'a> {
-    fn slice<'b>(&'b self, r: std::ops::Range<usize>) -> Cow<'b, str> {
-        Cow::Borrowed(&self.0[r])
+    fn slice<'b, R: RangeBounds<usize>>(&'b self, r: R) -> Cow<'b, str> {
+        // I'm dumb, I don't understand why I should do this.
+        match (r.start_bound(), r.end_bound()) {
+            (Bound::Unbounded, Bound::Unbounded) => Cow::Borrowed(self.0),
+            (Bound::Unbounded, Bound::Included(&e)) => {
+                Cow::Borrowed(&self.0[..=e])
+            },
+            (Bound::Unbounded, Bound::Excluded(&e)) => {
+                Cow::Borrowed(&self.0[..e])
+            },
+            (Bound::Included(&s), Bound::Unbounded) => {
+                Cow::Borrowed(&self.0[s..])
+            },
+            (Bound::Excluded(&s), Bound::Unbounded) => {
+                Cow::Borrowed(&self.0[s + 1..])
+            },
+            (Bound::Included(&s), Bound::Included(&e)) => {
+                Cow::Borrowed(&self.0[s..=e])
+            },
+            (Bound::Included(&s), Bound::Excluded(&e)) => {
+                Cow::Borrowed(&self.0[s..e])
+            },
+            (Bound::Excluded(&s), Bound::Included(&e)) => {
+                Cow::Borrowed(&self.0[s + 1..=e])
+            },
+            (Bound::Excluded(&s), Bound::Excluded(&e)) => {
+                Cow::Borrowed(&self.0[s + 1..e])
+            },
+        }
     }
 }
 

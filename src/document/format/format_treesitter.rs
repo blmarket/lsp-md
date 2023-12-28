@@ -14,12 +14,27 @@ use super::{
     SliceAccess,
 };
 
-struct Tmp<'a, T: LspAdapter + SliceAccess> {
+pub struct Tmp<'a, T: LspAdapter + SliceAccess> {
     buf: &'a T,
-    tree_root: Node<'a>,
+    tree: Tree,
 }
 
 impl<'a, T: LspAdapter + SliceAccess> Tmp<'a, T> {
+    pub fn new(buf: &'a T) -> Self {
+        let lang = tree_sitter_md::language();
+        let mut parser = Parser::new();
+        parser.set_language(lang).expect("should set lang");
+
+        let tree = parser
+            .parse(buf.slice(0..).as_bytes(), None)
+            .expect("should parse markdown doc");
+
+        Self {
+            buf,
+            tree,
+        }
+    }
+    
     fn range_from_lsp(&self, range: LspRange) -> Range<usize> {
         self.buf.position_to_offset(&range.start).unwrap()..
             self.buf.position_to_offset(&range.end).unwrap()
@@ -76,7 +91,7 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
         range: LspRange,
     ) -> Option<Vec<tower_lsp::lsp_types::TextEdit>> {
         let r2 = self.range_from_lsp(range);
-        let cursor = self.tree_root.walk();
+        let cursor = self.tree.root_node().walk();
         let trav = Traversal::from_cursor(cursor);
         let mut res: Box<dyn Iterator<Item = TextEdit>> =
             Box::new(iter::empty());
@@ -170,13 +185,12 @@ fn format_should_work() {
     use super::util::TestDoc;
 
     let tree = tree(BUF);
-    let node = tree.root_node();
     let buf = String::from_utf8_lossy(BUF);
     let doc = TestDoc(&buf);
 
     let tmp = Tmp {
         buf: &doc,
-        tree_root: node,
+        tree,
     };
 
     let edits = tmp

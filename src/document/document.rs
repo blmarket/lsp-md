@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, ops::RangeBounds};
 use std::ops::Range;
 
 use regex::RegexBuilder;
@@ -14,11 +14,11 @@ pub struct Document {
 }
 
 pub trait SliceAccess {
-    fn slice<'a>(&'a self, r: Range<usize>) -> Cow<'a, str>;
+    fn slice<'a, R: RangeBounds<usize>>(&'a self, r: R) -> Cow<'a, str>;
 }
 
 impl SliceAccess for Document {
-    fn slice<'a>(&'a self, r: Range<usize>) -> Cow<'a, str> {
+    fn slice<'a, R: RangeBounds<usize>>(&'a self, r: R) -> Cow<'a, str> {
         self.rope.get_byte_slice(r).map(|v| v.into()).unwrap()
     }
 }
