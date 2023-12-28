@@ -3,11 +3,11 @@ use std::borrow::Cow;
 use tower_lsp::lsp_types::{TextEdit, Range, Position};
 use super::{LspAdapter, SliceAccess};
 
-struct TestDoc<'a>(&'a str);
+pub struct TestDoc<'a>(pub &'a str);
 
 impl TestDoc<'_> {
     #[allow(dead_code)] // Only used in tests.
-    fn apply_edits(&self, edits: &[TextEdit]) -> String {
+    pub fn apply_edits(&self, edits: &[TextEdit]) -> String {
         let mut ret = String::with_capacity(self.0.len());
         let mut last = 0;
         for edit in edits {
@@ -65,7 +65,7 @@ impl<'a> LspAdapter for TestDoc<'a> {
     }
 }
 
-trait QuickEdit {
+pub trait QuickEdit {
     fn edit<S: ToString>(
         &self,
         soff: usize,

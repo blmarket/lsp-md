@@ -2,7 +2,7 @@
 
 use tree_sitter::{Node, Parser, TreeCursor, Tree};
 
-fn debug_walk(mut cursor: TreeCursor) {
+pub fn debug_walk(mut cursor: TreeCursor) {
     loop {
         println!(
             "{:?}: {:?} {} {}",
