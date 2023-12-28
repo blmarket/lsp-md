@@ -21,8 +21,8 @@ struct Tmp<'a, T: LspAdapter + SliceAccess> {
 
 impl<'a, T: LspAdapter + SliceAccess> Tmp<'a, T> {
     fn range_from_lsp(&self, range: LspRange) -> Range<usize> {
-        self.buf.position_to_offset(&range.start).unwrap()
-            ..self.buf.position_to_offset(&range.end).unwrap()
+        self.buf.position_to_offset(&range.start).unwrap()..
+            self.buf.position_to_offset(&range.end).unwrap()
     }
 
     fn fmt<'b, T2: Iterator<Item = Node<'b>>>(&self, nodes: T2) {
@@ -78,7 +78,8 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
         let r2 = self.range_from_lsp(range);
         let cursor = self.tree_root.walk();
         let trav = Traversal::from_cursor(cursor);
-        let mut res: Box<dyn Iterator<Item = TextEdit>> = Box::new(iter::empty());
+        let mut res: Box<dyn Iterator<Item = TextEdit>> =
+            Box::new(iter::empty());
         for it in trav {
             let r1 = it.byte_range();
             if r1.start >= r2.end || r2.start >= r1.end {
@@ -92,13 +93,20 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
                     let src3 = &src[src2.len()..];
                     let mut updated = process_section(&src2);
                     updated.push_str(src3);
-                    res = Box::new(res.chain(iter::once(TextEdit {
-                        range: LspRange {
-                            start: MyPosition::from(it.start_position()).into(),
-                            end: MyPosition::from(it.end_position()).into(),
-                        },
-                        new_text: updated,
-                    })));
+                    res =
+                        Box::new(
+                            res.chain(iter::once(TextEdit {
+                                range: LspRange {
+                                    start: MyPosition::from(
+                                        it.start_position(),
+                                    )
+                                    .into(),
+                                    end: MyPosition::from(it.end_position())
+                                        .into(),
+                                },
+                                new_text: updated,
+                            })),
+                        );
                 },
                 "list" => {
                     res = Box::new(res.chain(process_list_node(self.buf, it)));
@@ -109,7 +117,7 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
                 _ => panic!("unexpected type: {}", it.kind()),
             }
         }
-        
+
         Some(res.collect())
     }
 }
@@ -171,10 +179,12 @@ fn format_should_work() {
         tree_root: node,
     };
 
-    let edits = tmp.format(LspRange {
-        start: doc.offset_to_position(0).unwrap(),
-        end: doc.offset_to_position(BUF.len()).unwrap(),
-    }).unwrap();
-    
+    let edits = tmp
+        .format(LspRange {
+            start: doc.offset_to_position(0).unwrap(),
+            end: doc.offset_to_position(BUF.len()).unwrap(),
+        })
+        .unwrap();
+
     println!("{}", doc.apply_edits(&edits));
 }
