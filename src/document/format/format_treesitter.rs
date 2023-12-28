@@ -1,12 +1,18 @@
 #![allow(dead_code)]
 
+use std::iter;
 use std::ops::Range;
 
-use tower_lsp::lsp_types::Range as LspRange;
-use tree_sitter::{Node, Parser, Tree};
+use tower_lsp::lsp_types::{
+    Position as LspPosition, Range as LspRange, TextEdit,
+};
+use tree_sitter::{Node, Parser, Point, Tree};
 
 use super::treesitter::Traversal;
-use super::{LspAdapter, LspRangeFormat, SliceAccess, process_section};
+use super::{
+    process_list_items, process_section, LspAdapter, LspRangeFormat,
+    SliceAccess,
+};
 
 struct Tmp<'a, T: LspAdapter + SliceAccess> {
     buf: &'a T,
@@ -15,8 +21,8 @@ struct Tmp<'a, T: LspAdapter + SliceAccess> {
 
 impl<'a, T: LspAdapter + SliceAccess> Tmp<'a, T> {
     fn range_from_lsp(&self, range: LspRange) -> Range<usize> {
-        self.buf.position_to_offset(&range.start).unwrap()..
-            self.buf.position_to_offset(&range.end).unwrap()
+        self.buf.position_to_offset(&range.start).unwrap()
+            ..self.buf.position_to_offset(&range.end).unwrap()
     }
 
     fn fmt<'b, T2: Iterator<Item = Node<'b>>>(&self, nodes: T2) {
@@ -26,21 +32,42 @@ impl<'a, T: LspAdapter + SliceAccess> Tmp<'a, T> {
     }
 }
 
-fn process_list_item_node(node: Node<'_>) {
-    if node.kind() != "list_item" {
-        return;
+struct MyPosition(LspPosition);
+
+impl From<Point> for MyPosition {
+    fn from(value: Point) -> Self {
+        Self(LspPosition {
+            line: value.row as u32,
+            character: value.column as u32,
+        })
     }
 }
 
-fn process_list_node(node: Node<'_>) {
-    let mut cursor = node.walk();
-    cursor.goto_first_child();
-    loop {
-        process_list_item_node(cursor.node());
-        if !cursor.goto_next_sibling() {
-            break;
-        }
+impl Into<LspPosition> for MyPosition {
+    fn into(self) -> LspPosition {
+        self.0
     }
+}
+
+fn process_list_node<T: SliceAccess>(
+    buf: &T,
+    node: Node<'_>,
+) -> impl Iterator<Item = TextEdit> {
+    let r1 = node.byte_range();
+    let src = buf.slice(r1.clone());
+    let src2 = src.trim_end();
+    let src3 = &src[src2.len()..];
+
+    let mut ret = process_list_items(src2);
+    ret.push_str(src3);
+
+    iter::once(TextEdit {
+        range: LspRange {
+            start: MyPosition::from(node.start_position()).into(),
+            end: MyPosition::from(node.end_position()).into(),
+        },
+        new_text: ret,
+    })
 }
 
 impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
@@ -51,6 +78,7 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
         let r2 = self.range_from_lsp(range);
         let cursor = self.tree_root.walk();
         let trav = Traversal::from_cursor(cursor);
+        let mut res: Box<dyn Iterator<Item = TextEdit>> = Box::new(iter::empty());
         for it in trav {
             let r1 = it.byte_range();
             if r1.start >= r2.end || r2.start >= r1.end {
@@ -59,13 +87,21 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
 
             match it.kind() {
                 "paragraph" => {
-                    // dbg!(&self.buf.slice(r1.clone()));
-                    let mut updated = process_section(&self.buf.slice(r1));
-                    updated.push('\n');
-                    // dbg!(updated);
+                    let src = self.buf.slice(r1.clone());
+                    let src2 = src.trim_end();
+                    let src3 = &src[src2.len()..];
+                    let mut updated = process_section(&src2);
+                    updated.push_str(src3);
+                    res = Box::new(res.chain(iter::once(TextEdit {
+                        range: LspRange {
+                            start: MyPosition::from(it.start_position()).into(),
+                            end: MyPosition::from(it.end_position()).into(),
+                        },
+                        new_text: updated,
+                    })));
                 },
                 "list" => {
-                    process_list_node(it);
+                    res = Box::new(res.chain(process_list_node(self.buf, it)));
                     // dbg!(&self.buf.slice(r1.clone()));
                     // let updated = process_list_items(&self.buf.slice(r1));
                     // dbg!(updated);
@@ -73,8 +109,8 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
                 _ => panic!("unexpected type: {}", it.kind()),
             }
         }
-
-        None
+        
+        Some(res.collect())
     }
 }
 
@@ -108,6 +144,8 @@ must be kept.
     -   When https://example.com is in the middle of paragraph...
 -   Sometimesthereisalonglinewithmorethan80characterssowecannotformatthisproperlybutstill...
 
+Some other paragraph here
+
 ```markdown
 Some other markdown
 ```
@@ -133,8 +171,10 @@ fn format_should_work() {
         tree_root: node,
     };
 
-    tmp.format(LspRange {
+    let edits = tmp.format(LspRange {
         start: doc.offset_to_position(0).unwrap(),
         end: doc.offset_to_position(BUF.len()).unwrap(),
-    });
+    }).unwrap();
+    
+    println!("{}", doc.apply_edits(&edits));
 }
