@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use tree_sitter::{Node, Parser, TreeCursor, Tree};
+use tree_sitter::{Node, Parser, Tree, TreeCursor};
 
 pub fn debug_walk(mut cursor: TreeCursor) {
     loop {
@@ -55,7 +55,7 @@ impl<'a> Traversal<'a> {
     pub fn from_cursor<'b>(cursor: TreeCursor<'b>) -> Traversal<'b> {
         Traversal::Running(Running(cursor))
     }
-    
+
     fn step_into(&mut self) -> bool {
         match self {
             Traversal::Running(cursor) => cursor.step_into(),
@@ -183,7 +183,7 @@ fn simple_should_work() {
 fn traversal_should_work() {
     let tree = tree(BUF);
     let mut trav = Traversal::from_cursor(tree.walk());
-    
+
     while let Some(it) = trav.next() {
         dbg!(it);
     }

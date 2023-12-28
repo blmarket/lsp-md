@@ -1,4 +1,4 @@
-use std::{borrow::Cow, ops::RangeBounds};
+use std::borrow::Cow;
 use std::ops::Range;
 
 use regex::RegexBuilder;

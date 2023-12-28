@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
-use tower_lsp::lsp_types::{TextEdit, Range, Position};
+use tower_lsp::lsp_types::{Position, Range, TextEdit};
+
 use super::{LspAdapter, SliceAccess};
 
 pub struct TestDoc<'a>(pub &'a str);
@@ -11,7 +12,10 @@ impl TestDoc<'_> {
         let mut ret = String::with_capacity(self.0.len());
         let mut last = 0;
         for edit in edits {
-            ret.push_str(&self.0[last..self.position_to_offset(&edit.range.start).unwrap()]);
+            ret.push_str(
+                &self.0
+                    [last..self.position_to_offset(&edit.range.start).unwrap()],
+            );
             ret.push_str(&edit.new_text);
             last = self.position_to_offset(&edit.range.end).unwrap();
         }

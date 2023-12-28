@@ -1,13 +1,12 @@
+#![allow(dead_code)]
+
 use std::ops::Range;
 
-use tower_lsp::lsp_types::{Range as LspRange, TextEdit};
+use tower_lsp::lsp_types::Range as LspRange;
 use tree_sitter::{Node, Parser, Tree};
 
-use crate::document::format::{process_section, process_list_items};
-
-use super::treesitter::{Traversal, debug_walk};
-use super::util::TestDoc;
-use super::{LspAdapter, LspRangeFormat, SliceAccess};
+use super::treesitter::Traversal;
+use super::{LspAdapter, LspRangeFormat, SliceAccess, process_section};
 
 struct Tmp<'a, T: LspAdapter + SliceAccess> {
     buf: &'a T,
@@ -57,7 +56,7 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
             if r1.start >= r2.end || r2.start >= r1.end {
                 continue;
             }
-            
+
             match it.kind() {
                 "paragraph" => {
                     // dbg!(&self.buf.slice(r1.clone()));
@@ -122,6 +121,8 @@ using namespace std;
 
 #[test]
 fn format_should_work() {
+    use super::util::TestDoc;
+
     let tree = tree(BUF);
     let node = tree.root_node();
     let buf = String::from_utf8_lossy(BUF);

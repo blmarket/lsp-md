@@ -1,8 +1,7 @@
 use tower_lsp::lsp_types::{Position, Range};
 
-use crate::document::format::util::{TestDoc, QuickEdit as _};
-
 use super::*;
+use crate::document::format::util::{QuickEdit as _, TestDoc};
 
 #[test]
 fn test_format() {
@@ -30,29 +29,33 @@ Content of section 2...
             character: 0,
         },
     };
-    
+
     let expected = src.to_string().replace("HERE and", "HERE\nand");
 
-    assert_eq!(
-        expected,
-        doc.apply_edits(&doc.format(range).unwrap())
-    );
+    assert_eq!(expected, doc.apply_edits(&doc.format(range).unwrap()));
 }
 
 #[test]
 fn format_should_ignore_one_big_line() {
     let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisblahblahhaha1234567"#;
     let doc = TestDoc(src);
-    assert_eq!(src, doc.apply_edits(doc.format(Range {
-        start: Position {
-            line: 0,
-            character: 0
-        },
-        end: Position {
-            line: 0,
-            character: 100
-        }
-    }).unwrap().as_slice()));
+    assert_eq!(
+        src,
+        doc.apply_edits(
+            doc.format(Range {
+                start: Position {
+                    line: 0,
+                    character: 0
+                },
+                end: Position {
+                    line: 0,
+                    character: 100
+                }
+            })
+            .unwrap()
+            .as_slice()
+        )
+    );
 }
 
 #[test]
@@ -61,16 +64,19 @@ fn format_should_break_after_long_line() {
     let doc = TestDoc(src);
     assert_eq!(
         src.to_string().replace("isb ahblah", "isb\nahblah"),
-        doc.apply_edits(&doc.format(Range {
-            start: Position {
-                line: 0,
-                character: 0
-            },
-            end: Position {
-                line: 0,
-                character: 100
-            }
-        }).unwrap())
+        doc.apply_edits(
+            &doc.format(Range {
+                start: Position {
+                    line: 0,
+                    character: 0
+                },
+                end: Position {
+                    line: 0,
+                    character: 100
+                }
+            })
+            .unwrap()
+        )
     );
 }
 
@@ -126,7 +132,7 @@ fn process_section_should_format_properly() {
 #[test]
 fn process_section_should_format_url() {
     assert_eq!(
-        "a:\nhttps://someurl.com\nahblahhaha1234567", 
+        "a:\nhttps://someurl.com\nahblahhaha1234567",
         process_section(r#"a: https://someurl.com ahblahhaha1234567"#)
     );
 }
@@ -140,7 +146,8 @@ fn process_section_bullet_items() {
 - item 3  
   multiline content
 - item 4: https://someurl.com is good
-- item 5"#.trim();
+- item 5"#
+        .trim();
     assert_eq!(
         r#"
 - item 1
@@ -151,7 +158,8 @@ fn process_section_bullet_items() {
 - item 4:
   https://someurl.com
   is good
-- item 5"#.trim(),
+- item 5"#
+            .trim(),
         process_section(src)
     );
 }
