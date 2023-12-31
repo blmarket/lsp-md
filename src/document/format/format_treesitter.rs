@@ -14,12 +14,12 @@ use super::{
     SliceAccess,
 };
 
-pub struct Tmp<'a, T: LspAdapter + SliceAccess> {
+pub struct Formatter<'a, T: LspAdapter + SliceAccess> {
     buf: &'a T,
     tree: Tree,
 }
 
-impl<'a, T: LspAdapter + SliceAccess> Tmp<'a, T> {
+impl<'a, T: LspAdapter + SliceAccess> Formatter<'a, T> {
     pub fn new(buf: &'a T) -> Self {
         let lang = tree_sitter_md::language();
         let mut parser = Parser::new();
@@ -85,7 +85,7 @@ fn process_list_node<T: SliceAccess>(
     })
 }
 
-impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Tmp<'a, T> {
+impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Formatter<'a, T> {
     fn format(
         &self,
         range: LspRange,
@@ -188,7 +188,7 @@ fn format_should_work() {
     let buf = String::from_utf8_lossy(BUF);
     let doc = TestDoc(&buf);
 
-    let tmp = Tmp {
+    let tmp = Formatter {
         buf: &doc,
         tree,
     };
