@@ -6,12 +6,12 @@ mod tests;
 mod treesitter;
 mod util;
 
+pub use format_treesitter::Formatter;
 use processors::{process_list_items, process_section};
 use tower_lsp::lsp_types::{Range, TextEdit};
 
 use super::document::SliceAccess;
 use super::document_adapter::LspAdapter;
-pub use format_treesitter::Formatter;
 
 pub trait LspRangeFormat {
     fn format(&self, range: Range) -> Option<Vec<TextEdit>>;

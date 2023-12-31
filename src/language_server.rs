@@ -9,7 +9,7 @@ use tower_lsp::{Client, LanguageServer};
 
 use crate::document::{
     extract_keywords, find_by_keyword, find_similar, query_section_titles,
-    BertModel, Document, LspRangeFormat, CodeFormatter,
+    BertModel, CodeFormatter, Document, LspRangeFormat,
 };
 
 #[derive(Debug, Eq, PartialEq, Clone, Deserialize, Serialize)]
@@ -212,7 +212,7 @@ impl LanguageServer for Backend {
         let Some(doc) = self.document_map.get(&uri) else {
             return Ok(None);
         };
-        
+
         Ok(CodeFormatter::new(doc.value()).format(params.range))
     }
 }

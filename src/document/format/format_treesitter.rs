@@ -29,12 +29,9 @@ impl<'a, T: LspAdapter + SliceAccess> Formatter<'a, T> {
             .parse(buf.slice(0..).as_bytes(), None)
             .expect("should parse markdown doc");
 
-        Self {
-            buf,
-            tree,
-        }
+        Self { buf, tree }
     }
-    
+
     fn range_from_lsp(&self, range: LspRange) -> Range<usize> {
         self.buf.position_to_offset(&range.start).unwrap()..
             self.buf.position_to_offset(&range.end).unwrap()
@@ -188,10 +185,7 @@ fn format_should_work() {
     let buf = String::from_utf8_lossy(BUF);
     let doc = TestDoc(&buf);
 
-    let tmp = Formatter {
-        buf: &doc,
-        tree,
-    };
+    let tmp = Formatter { buf: &doc, tree };
 
     let edits = tmp
         .format(LspRange {

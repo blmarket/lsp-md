@@ -1,5 +1,5 @@
-use std::{borrow::Cow, ops::RangeBounds};
-use std::ops::Range;
+use std::borrow::Cow;
+use std::ops::{Range, RangeBounds};
 
 use regex::RegexBuilder;
 use ropey::{Rope, RopeSlice};

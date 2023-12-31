@@ -1,7 +1,5 @@
-use std::{
-    borrow::Cow,
-    ops::{Bound, RangeBounds},
-};
+use std::borrow::Cow;
+use std::ops::{Bound, RangeBounds};
 
 use tower_lsp::lsp_types::{Position, Range, TextEdit};
 
