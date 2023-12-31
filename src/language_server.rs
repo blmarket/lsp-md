@@ -112,8 +112,19 @@ impl LanguageServer for Backend {
                 vec![CodeLens {
                     range: r,
                     command: Some(Command {
-                        title: "Search similar documents".to_string(),
+                        title: "Similar docs".to_string(),
                         command: "lsp_md/searchSimilar".to_string(),
+                        arguments: Some(vec![json!(Location::new(
+                            uri.clone(),
+                            r
+                        ))]),
+                    }),
+                    data: None,
+                }, CodeLens {
+                    range: r,
+                    command: Some(Command {
+                        title: "Keywords".to_string(),
+                        command: "lsp_md/keywords".to_string(),
                         arguments: Some(vec![json!(Location::new(
                             uri.clone(),
                             r
