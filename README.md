@@ -32,7 +32,34 @@ Wanted to do more with nvim, and LSP looked promising:
 `cargo run`
 
 Configuring standalone binaries can be challenging due to the presence of
-dynamic linked libraries from PyTorch. `LD_LIBRARY_PATH=somewhere_in_deps`
+dynamic linked libraries from PyTorch. See below alternatives.
+
+### Alternative: patchelf
+
+`ldd lsp-md` to find missing so files, copy them from deps/...(some pytorch
+lib) and patchelf --replace-needed to set them current path.
+
+### Alternative 2: copy so files to /usr/local/lib?
+
+Even though it will make those stale torch lib (currently they're 2.0.0, not
+the latest version...)
+
+### Alternative 3: Set `LD_LIBRARY_PATH` env
+
+It will help bin to find those so files.
+
+### Not recommended: Static build everything
+
+The problem is from built binary is looking for dynamic lib which is not
+installed in the system, so static link can be an option to solve the problem.
+Just following problems:
+
+* Impossible to decide everything at the build time:  
+  we don't know the target system has cuda or other BLAS libs.
+* Headache building torch by yourself:  
+  You want to just build a language server, not the underlying library.
+
+Overall it does not worth trying.
 
 ## Integration with nvim
 
