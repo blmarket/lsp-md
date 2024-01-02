@@ -163,13 +163,6 @@ impl LanguageServer for Backend {
         &self,
         params: ExecuteCommandParams,
     ) -> Result<Option<Value>> {
-        self.client
-            .log_message(
-                MessageType::INFO,
-                format!("command executed!: {:?}", params),
-            )
-            .await;
-
         match params.command.as_str() {
             "lsp_md/searchSimilar" => {
                 let loc: Location =
