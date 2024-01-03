@@ -101,6 +101,27 @@ fn format_should_break_single_line_into_multiple() -> anyhow::Result<()> {
 }
 
 #[test]
+fn format_should_keep_line_breaks() -> anyhow::Result<()> {
+    let src = "Paragraph  \n  with  \nline break\n";
+    let doc = TestDoc(src);
+    let range = Range {
+        start: Position {
+            line: 0,
+            character: 0,
+        },
+        end: Position {
+            line: src.lines().count() as u32,
+            character: 0,
+        },
+    };
+    assert_eq!(
+        "Paragraph  \nwith  \nline break\n",
+        doc.apply_edits(&Formatter::new(&doc).format(range).unwrap())
+    );
+    Ok(())
+}
+
+#[test]
 #[ignore = "currently this test is failing"]
 fn format_should_remove_whitespace_at_the_beginning() -> anyhow::Result<()> {
     let src = r#" somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;

@@ -109,29 +109,32 @@ impl LanguageServer for Backend {
         let res = section_titles
             .into_iter()
             .flat_map(|r| {
-                vec![CodeLens {
-                    range: r,
-                    command: Some(Command {
-                        title: "Similar docs".to_string(),
-                        command: "lsp_md/searchSimilar".to_string(),
-                        arguments: Some(vec![json!(Location::new(
-                            uri.clone(),
-                            r
-                        ))]),
-                    }),
-                    data: None,
-                }, CodeLens {
-                    range: r,
-                    command: Some(Command {
-                        title: "Keywords".to_string(),
-                        command: "lsp_md/keywords".to_string(),
-                        arguments: Some(vec![json!(Location::new(
-                            uri.clone(),
-                            r
-                        ))]),
-                    }),
-                    data: None,
-                }]
+                vec![
+                    CodeLens {
+                        range: r,
+                        command: Some(Command {
+                            title: "Similar docs".to_string(),
+                            command: "lsp_md/searchSimilar".to_string(),
+                            arguments: Some(vec![json!(Location::new(
+                                uri.clone(),
+                                r
+                            ))]),
+                        }),
+                        data: None,
+                    },
+                    CodeLens {
+                        range: r,
+                        command: Some(Command {
+                            title: "Keywords".to_string(),
+                            command: "lsp_md/keywords".to_string(),
+                            arguments: Some(vec![json!(Location::new(
+                                uri.clone(),
+                                r
+                            ))]),
+                        }),
+                        data: None,
+                    },
+                ]
             })
             .collect();
 

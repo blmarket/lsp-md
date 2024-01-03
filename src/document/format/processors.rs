@@ -70,11 +70,8 @@ pub fn process_list_items(section: &str) -> String {
     ret
 }
 
-pub fn process_section(section: &str) -> String {
-    if list_item().is_match(section) {
-        return process_list_items(section);
-    }
-
+/// Process a section chunk which is a part of a section.
+fn process_section_chunk(section: &str) -> String {
     let ws = non_ws();
     let words = ws.find_iter(section);
     let mut ret = String::with_capacity(8192);
@@ -98,4 +95,21 @@ pub fn process_section(section: &str) -> String {
         ret.pop();
     }
     ret
+}
+
+pub fn process_section(section: &str) -> String {
+    if list_item().is_match(section) {
+        return process_list_items(section);
+    }
+
+    section
+        .split("  \n")
+        .map(|chunk| process_section_chunk(chunk))
+        .fold(String::with_capacity(8192), |mut acc, it| {
+            if !acc.is_empty() {
+                acc.push_str("  \n");
+            }
+            acc.push_str(&it);
+            acc
+        })
 }
