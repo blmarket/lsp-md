@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::iter;
 use std::ops::Range;
 
@@ -36,14 +34,9 @@ impl<'a, T: LspAdapter + SliceAccess> Formatter<'a, T> {
         self.buf.position_to_offset(&range.start).unwrap()..
             self.buf.position_to_offset(&range.end).unwrap()
     }
-
-    fn fmt<'b, T2: Iterator<Item = Node<'b>>>(&self, nodes: T2) {
-        for it in nodes {
-            dbg!(it);
-        }
-    }
 }
 
+/// Simple utility to convert between LSP and treesitter positions.
 struct MyPosition(LspPosition);
 
 impl From<Point> for MyPosition {
@@ -134,17 +127,10 @@ impl<'a, T: LspAdapter + SliceAccess> LspRangeFormat for Formatter<'a, T> {
     }
 }
 
-fn tree(buf: &[u8]) -> Tree {
-    let lang = tree_sitter_md::language();
-    let mut parser = Parser::new();
-    parser.set_language(lang).expect("should set lang");
-
-    parser.parse(buf, None).expect("should parse markdown doc")
-}
-
 // TODO: Add mod tests with test configuration. and put all the tests in it.
 
-const BUF: &'static [u8] = br#"Title
+#[allow(dead_code)]
+const BUF: &'static str = r#"Title
 ---
 
 Some paragraph here, with long text longer than 80 characters, need some reformatting to align 80 cols.
@@ -181,11 +167,9 @@ using namespace std;
 fn format_should_work() {
     use super::util::TestDoc;
 
-    let tree = tree(BUF);
-    let buf = String::from_utf8_lossy(BUF);
-    let doc = TestDoc(&buf);
+    let doc = TestDoc(BUF);
 
-    let tmp = Formatter { buf: &doc, tree };
+    let tmp = Formatter::new(&doc);
 
     let edits = tmp
         .format(LspRange {

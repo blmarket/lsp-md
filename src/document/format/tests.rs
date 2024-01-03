@@ -32,7 +32,10 @@ Content of section 2...
 
     let expected = src.to_string().replace("HERE and", "HERE\nand");
 
-    assert_eq!(expected, doc.apply_edits(Formatter::new(&doc).format(range).unwrap()));
+    assert_eq!(
+        expected,
+        doc.apply_edits(Formatter::new(&doc).format(range).unwrap())
+    );
 }
 
 #[test]
@@ -42,18 +45,19 @@ fn format_should_ignore_one_big_line() {
     assert_eq!(
         src,
         doc.apply_edits(
-            Formatter::new(&doc).format(Range {
-                start: Position {
-                    line: 0,
-                    character: 0
-                },
-                end: Position {
-                    line: 0,
-                    character: 100
-                }
-            })
-            .unwrap()
-            .as_slice()
+            Formatter::new(&doc)
+                .format(Range {
+                    start: Position {
+                        line: 0,
+                        character: 0
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 100
+                    }
+                })
+                .unwrap()
+                .as_slice()
         )
     );
 }
@@ -65,17 +69,18 @@ fn format_should_break_after_long_line() {
     assert_eq!(
         src.to_string().replace("isb ahblah", "isb\nahblah"),
         doc.apply_edits(
-            Formatter::new(&doc).format(Range {
-                start: Position {
-                    line: 0,
-                    character: 0
-                },
-                end: Position {
-                    line: 0,
-                    character: 100
-                }
-            })
-            .unwrap()
+            Formatter::new(&doc)
+                .format(Range {
+                    start: Position {
+                        line: 0,
+                        character: 0
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 100
+                    }
+                })
+                .unwrap()
         )
     );
 }

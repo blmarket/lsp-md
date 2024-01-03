@@ -5,7 +5,6 @@ mod tests;
 mod treesitter;
 mod util;
 
-pub use format_treesitter::Formatter;
 use processors::{process_list_items, process_section};
 use tower_lsp::lsp_types::{Range, TextEdit};
 
@@ -15,3 +14,5 @@ use super::document_adapter::LspAdapter;
 pub trait LspRangeFormat {
     fn format(&self, range: Range) -> Option<Vec<TextEdit>>;
 }
+/// A formatter that uses the treesitter library to format documents.
+pub use format_treesitter::Formatter;
