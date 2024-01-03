@@ -32,7 +32,7 @@ Content of section 2...
 
     let expected = src.to_string().replace("HERE and", "HERE\nand");
 
-    assert_eq!(expected, doc.apply_edits(&doc.format(range).unwrap()));
+    assert_eq!(expected, doc.apply_edits(Formatter::new(&doc).format(range).unwrap()));
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn format_should_ignore_one_big_line() {
     assert_eq!(
         src,
         doc.apply_edits(
-            doc.format(Range {
+            Formatter::new(&doc).format(Range {
                 start: Position {
                     line: 0,
                     character: 0
@@ -65,7 +65,7 @@ fn format_should_break_after_long_line() {
     assert_eq!(
         src.to_string().replace("isb ahblah", "isb\nahblah"),
         doc.apply_edits(
-            &doc.format(Range {
+            Formatter::new(&doc).format(Range {
                 start: Position {
                     line: 0,
                     character: 0
@@ -86,7 +86,7 @@ fn format_should_break_single_line_into_multiple() -> anyhow::Result<()> {
     let doc = TestDoc(src);
     assert_eq!(
         "a\nsomereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb\nahblahhaha1234567",
-        doc.apply_edits(&doc.format(Range {
+        doc.apply_edits(Formatter::new(&doc).format(Range {
             start: Position {
                 line: 0,
                 character: 0
@@ -128,7 +128,7 @@ fn format_should_remove_whitespace_at_the_beginning() -> anyhow::Result<()> {
     let doc = TestDoc(src);
     assert_eq!(
         Some(vec![doc.edit(0, 1, ""), doc.edit(83, 84, "\n"),]),
-        doc.format(Range {
+        Formatter::new(&doc).format(Range {
             start: Position {
                 line: 0,
                 character: 0

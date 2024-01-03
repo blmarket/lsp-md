@@ -1,4 +1,3 @@
-mod format_naive;
 mod format_treesitter;
 mod processors;
 #[cfg(test)]

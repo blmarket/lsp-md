@@ -9,10 +9,10 @@ pub struct TestDoc<'a>(pub &'a str);
 
 impl TestDoc<'_> {
     #[allow(dead_code)] // Only used in tests.
-    pub fn apply_edits(&self, edits: &[TextEdit]) -> String {
+    pub fn apply_edits<T: AsRef<[TextEdit]>>(&self, edits: T) -> String {
         let mut ret = String::with_capacity(self.0.len());
         let mut last = 0;
-        for edit in edits {
+        for edit in edits.as_ref() {
             ret.push_str(
                 &self.0
                     [last..self.position_to_offset(&edit.range.start).unwrap()],
