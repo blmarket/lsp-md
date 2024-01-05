@@ -2,6 +2,7 @@ use tower_lsp::lsp_types::{TextEdit, Range};
 
 use super::document_adapter::LspAdapter;
 
+/// Helper trait to create a `TextEdit` from an offset range instead of positions.
 pub trait QuickEdit {
     fn edit<S: ToString>(
         &self,
