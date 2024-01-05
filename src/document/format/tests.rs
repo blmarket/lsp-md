@@ -1,7 +1,9 @@
 use tower_lsp::lsp_types::{Position, Range};
 
+use crate::document::incremental_sync::ApplyEdits;
+use crate::document::test_doc_v2::TestDoc2;
+
 use super::super::quick_edit::QuickEdit as _;
-use super::super::test_doc::TestDoc;
 use super::*;
 
 #[test]
@@ -19,7 +21,7 @@ Content of section 2...
 
 ### Subsection"#;
 
-    let doc = TestDoc(src);
+    let doc = TestDoc2::new(src.to_string());
     let range = Range {
         start: Position {
             line: 1,
@@ -33,75 +35,71 @@ Content of section 2...
 
     let expected = src.to_string().replace("HERE and", "HERE\nand");
 
-    assert_eq!(
-        expected,
-        doc.apply_edits(Formatter::new(&doc).format(range).unwrap())
-    );
+    let edits = Formatter::new(&doc).format(range).unwrap();
+
+    assert_eq!(expected, doc.apply_edits(edits));
 }
 
 #[test]
 fn format_should_ignore_one_big_line() {
     let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisblahblahhaha1234567"#;
-    let doc = TestDoc(src);
-    assert_eq!(
-        src,
-        doc.apply_edits(
-            Formatter::new(&doc)
-                .format(Range {
-                    start: Position {
-                        line: 0,
-                        character: 0
-                    },
-                    end: Position {
-                        line: 0,
-                        character: 100
-                    }
-                })
-                .unwrap()
-                .as_slice()
-        )
-    );
+    let doc = TestDoc2::new(src);
+    let edits = Formatter::new(&doc)
+        .format(Range {
+            start: Position {
+                line: 0,
+                character: 0,
+            },
+            end: Position {
+                line: 0,
+                character: 100,
+            },
+        })
+        .unwrap();
+    assert_eq!(src, doc.apply_edits(edits));
 }
 
 #[test]
 fn format_should_break_after_long_line() {
     let src = r#"somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;
-    let doc = TestDoc(src);
+    let doc = TestDoc2::new(src);
+    let edits = Formatter::new(&doc)
+        .format(Range {
+            start: Position {
+                line: 0,
+                character: 0,
+            },
+            end: Position {
+                line: 0,
+                character: 100,
+            },
+        })
+        .unwrap();
     assert_eq!(
         src.to_string().replace("isb ahblah", "isb\nahblah"),
-        doc.apply_edits(
-            Formatter::new(&doc)
-                .format(Range {
-                    start: Position {
-                        line: 0,
-                        character: 0
-                    },
-                    end: Position {
-                        line: 0,
-                        character: 100
-                    }
-                })
-                .unwrap()
-        )
+        doc.apply_edits(edits)
     );
 }
 
 #[test]
 fn format_should_break_single_line_into_multiple() -> anyhow::Result<()> {
     let src = r#"a somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;
-    let doc = TestDoc(src);
-    assert_eq!(
-        "a\nsomereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb\nahblahhaha1234567",
-        doc.apply_edits(Formatter::new(&doc).format(Range {
+    let doc = TestDoc2::new(src);
+    let edits = Formatter::new(&doc)
+        .format(Range {
             start: Position {
                 line: 0,
-                character: 0
+                character: 0,
             },
             end: Position {
                 line: 0,
-                character: 100
-            }
-        }).unwrap())
+                character: 100,
+            },
+        })
+        .unwrap();
+    assert_eq!(
+        "a\nsomereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb\nahblahhaha1234567",
+        doc.apply_edits(edits)
     );
     Ok(())
 }
@@ -109,7 +107,7 @@ fn format_should_break_single_line_into_multiple() -> anyhow::Result<()> {
 #[test]
 fn format_should_keep_line_breaks() -> anyhow::Result<()> {
     let src = "Paragraph  \n  with  \nline break\n";
-    let doc = TestDoc(src);
+    let doc = TestDoc2::new(src);
     let range = Range {
         start: Position {
             line: 0,
@@ -120,10 +118,8 @@ fn format_should_keep_line_breaks() -> anyhow::Result<()> {
             character: 0,
         },
     };
-    assert_eq!(
-        "Paragraph  \nwith  \nline break\n",
-        doc.apply_edits(&Formatter::new(&doc).format(range).unwrap())
-    );
+    let edits = Formatter::new(&doc).format(range).unwrap();
+    assert_eq!("Paragraph  \nwith  \nline break\n", doc.apply_edits(edits));
     Ok(())
 }
 
@@ -131,7 +127,7 @@ fn format_should_keep_line_breaks() -> anyhow::Result<()> {
 #[ignore = "currently this test is failing"]
 fn format_should_remove_whitespace_at_the_beginning() -> anyhow::Result<()> {
     let src = r#" somereallylongstringisnotabletoformattomultiplelinestheyshoujldkeptsinglelineasisb ahblahhaha1234567"#;
-    let doc = TestDoc(src);
+    let doc = TestDoc2::new(src);
     assert_eq!(
         Some(vec![doc.edit(0, 1, ""), doc.edit(83, 84, "\n"),]),
         Formatter::new(&doc).format(Range {

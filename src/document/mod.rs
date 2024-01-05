@@ -8,7 +8,6 @@ mod incremental_sync;
 #[cfg(test)]
 mod integration_tests;
 mod similar_notes;
-mod test_doc;
 mod test_doc_v2;
 mod quick_edit;
 

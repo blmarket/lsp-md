@@ -165,9 +165,10 @@ using namespace std;
 
 #[test]
 fn format_should_work() {
-    use super::super::test_doc::TestDoc;
+use crate::document::incremental_sync::ApplyEdits as _;
+use crate::document::test_doc_v2::TestDoc2;
 
-    let doc = TestDoc(BUF);
+    let doc = TestDoc2::new(BUF);
 
     let tmp = Formatter::new(&doc);
 
@@ -178,5 +179,5 @@ fn format_should_work() {
         })
         .unwrap();
 
-    println!("{}", doc.apply_edits(&edits));
+    println!("{:?}", doc.apply_edits(&edits));
 }

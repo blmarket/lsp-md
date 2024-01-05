@@ -8,16 +8,35 @@ use super::document::SliceAccess;
 use super::document_adapter::LspAdapter;
 use super::incremental_sync::ApplyEdits;
 
+#[derive(Debug, PartialEq)]
 pub struct TestDoc2(String);
 
 impl TestDoc2 {
-    pub fn new(s: String) -> Self {
-        Self(s)
+    pub fn new(s: impl Into<String>) -> Self {
+        Self(s.into())
+    }
+}
+
+impl Into<String> for TestDoc2 {
+    fn into(self) -> String {
+        self.0
+    }
+}
+
+impl PartialEq<TestDoc2> for String {
+    fn eq(&self, other: &TestDoc2) -> bool {
+        self == &other.0
+    }
+}
+
+impl PartialEq<TestDoc2> for &str {
+    fn eq(&self, other: &TestDoc2) -> bool {
+        self == &other.0
     }
 }
 
 impl ApplyEdits for TestDoc2 {
-    fn apply_edit(self, change: TextDocumentContentChangeEvent) -> Self {
+    fn apply_change(self, change: TextDocumentContentChangeEvent) -> Self {
         let Some(rng) = change.range else {
             return TestDoc2::new(change.text);
         };
