@@ -7,6 +7,7 @@ mod format;
 #[cfg(test)]
 mod integration_tests;
 mod similar_notes;
+mod util;
 
 pub use bert::{BertModel, Encoder};
 pub use document::Document;

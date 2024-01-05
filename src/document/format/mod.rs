@@ -3,7 +3,6 @@ mod processors;
 #[cfg(test)]
 mod tests;
 mod treesitter;
-mod util;
 
 use processors::{process_list_items, process_section};
 use tower_lsp::lsp_types::{Range, TextEdit};

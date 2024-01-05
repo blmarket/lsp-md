@@ -3,7 +3,8 @@ use std::ops::{Bound, RangeBounds};
 
 use tower_lsp::lsp_types::{Position, Range, TextEdit};
 
-use super::{LspAdapter, SliceAccess};
+use super::document::SliceAccess;
+use super::document_adapter::LspAdapter;
 
 pub struct TestDoc<'a>(pub &'a str);
 
