@@ -15,7 +15,8 @@
       ],
       "preLaunchTask": "build",
       "env": {
-        "SERVER_PATH": "${workspaceRoot}/target/debug/lsp-md"
+        "SERVER_PATH": "${workspaceRoot}/target/debug/lsp-md",
+        "LD_LIBRARY_PATH": "${workspaceRoot}/target/debug/"
       }
     },
     {
