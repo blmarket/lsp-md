@@ -9,36 +9,36 @@ use super::document_adapter::LspAdapter;
 use super::incremental_sync::ApplyEdits;
 
 #[derive(Debug, PartialEq)]
-pub struct TestDoc2(String);
+pub struct TestDoc(String);
 
-impl TestDoc2 {
+impl TestDoc {
     pub fn new(s: impl Into<String>) -> Self {
         Self(s.into())
     }
 }
 
-impl Into<String> for TestDoc2 {
+impl Into<String> for TestDoc {
     fn into(self) -> String {
         self.0
     }
 }
 
-impl PartialEq<TestDoc2> for String {
-    fn eq(&self, other: &TestDoc2) -> bool {
+impl PartialEq<TestDoc> for String {
+    fn eq(&self, other: &TestDoc) -> bool {
         self == &other.0
     }
 }
 
-impl PartialEq<TestDoc2> for &str {
-    fn eq(&self, other: &TestDoc2) -> bool {
+impl PartialEq<TestDoc> for &str {
+    fn eq(&self, other: &TestDoc) -> bool {
         self == &other.0
     }
 }
 
-impl ApplyEdits for TestDoc2 {
+impl ApplyEdits for TestDoc {
     fn apply_change(self, change: TextDocumentContentChangeEvent) -> Self {
         let Some(rng) = change.range else {
-            return TestDoc2::new(change.text);
+            return TestDoc::new(change.text);
         };
         let mut ret = String::with_capacity(self.0.len() + change.text.len());
         let sp = self.position_to_offset(&rng.start).unwrap();
@@ -47,11 +47,11 @@ impl ApplyEdits for TestDoc2 {
         ret.push_str(&change.text);
         ret.push_str(&self.0[ep..]);
 
-        TestDoc2::new(ret)
+        TestDoc::new(ret)
     }
 }
 
-impl SliceAccess for TestDoc2 {
+impl SliceAccess for TestDoc {
     fn slice<'b, R>(&'b self, r: R) -> Cow<'b, str> 
     where R: RangeBounds<usize> + SliceIndex<str, Output = str>,
     {
@@ -59,7 +59,7 @@ impl SliceAccess for TestDoc2 {
     }
 }
 
-impl LspAdapter for TestDoc2 {
+impl LspAdapter for TestDoc {
     fn offset_to_position(&self, offset: usize) -> Option<Position> {
         if offset > self.0.len() {
             return None;

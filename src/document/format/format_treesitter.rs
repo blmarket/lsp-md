@@ -166,9 +166,9 @@ using namespace std;
 #[test]
 fn format_should_work() {
 use crate::document::incremental_sync::ApplyEdits as _;
-use crate::document::test_doc_v2::TestDoc2;
+use crate::document::test_doc::TestDoc;
 
-    let doc = TestDoc2::new(BUF);
+    let doc = TestDoc::new(BUF);
 
     let tmp = Formatter::new(&doc);
 

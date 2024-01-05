@@ -8,7 +8,7 @@ mod incremental_sync;
 #[cfg(test)]
 mod integration_tests;
 mod similar_notes;
-mod test_doc_v2;
+mod test_doc;
 mod quick_edit;
 
 pub use bert::{BertModel, Encoder};
