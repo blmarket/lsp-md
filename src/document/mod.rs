@@ -9,6 +9,7 @@ mod incremental_sync;
 mod integration_tests;
 mod similar_notes;
 mod test_doc;
+mod test_doc_v2;
 
 pub use bert::{BertModel, Encoder};
 pub use document::Document;

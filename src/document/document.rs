@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::ops::{Range, RangeBounds};
+use std::slice::SliceIndex;
 
 use regex::RegexBuilder;
 use ropey::{Rope, RopeSlice};
@@ -14,7 +15,10 @@ pub struct Document {
 }
 
 pub trait SliceAccess {
-    fn slice<'a, R: RangeBounds<usize>>(&'a self, r: R) -> Cow<'a, str>;
+    fn slice<'a, R: RangeBounds<usize> + SliceIndex<str, Output = str>>(
+        &'a self,
+        r: R,
+    ) -> Cow<'a, str>;
 }
 
 impl SliceAccess for Document {

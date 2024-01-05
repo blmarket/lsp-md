@@ -2,40 +2,45 @@ use std::borrow::Cow;
 use std::ops::RangeBounds;
 use std::slice::SliceIndex;
 
-use tower_lsp::lsp_types::{Position, Range, TextEdit};
+use tower_lsp::lsp_types::{Position, TextDocumentContentChangeEvent};
 
 use super::document::SliceAccess;
 use super::document_adapter::LspAdapter;
+use super::incremental_sync::ApplyEdits;
 
-pub struct TestDoc<'a>(pub &'a str);
+pub struct TestDoc2(String);
 
-impl TestDoc<'_> {
-    #[allow(dead_code)] // Only used in tests.
-    pub fn apply_edits<T: AsRef<[TextEdit]>>(&self, edits: T) -> String {
-        let mut ret = String::with_capacity(self.0.len());
-        let mut last = 0;
-        for edit in edits.as_ref() {
-            ret.push_str(
-                &self.0
-                    [last..self.position_to_offset(&edit.range.start).unwrap()],
-            );
-            ret.push_str(&edit.new_text);
-            last = self.position_to_offset(&edit.range.end).unwrap();
-        }
-        ret.push_str(&self.0[last..]);
-        ret
+impl TestDoc2 {
+    pub fn new(s: String) -> Self {
+        Self(s)
     }
 }
 
-impl<'a> SliceAccess for TestDoc<'a> {
+impl ApplyEdits for TestDoc2 {
+    fn apply_edit(self, change: TextDocumentContentChangeEvent) -> Self {
+        let Some(rng) = change.range else {
+            return TestDoc2::new(change.text);
+        };
+        let mut ret = String::with_capacity(self.0.len() + change.text.len());
+        let sp = self.position_to_offset(&rng.start).unwrap();
+        let ep = self.position_to_offset(&rng.end).unwrap();
+        ret.push_str(&self.0[..sp]);
+        ret.push_str(&change.text);
+        ret.push_str(&self.0[ep..]);
+
+        TestDoc2::new(ret)
+    }
+}
+
+impl SliceAccess for TestDoc2 {
     fn slice<'b, R>(&'b self, r: R) -> Cow<'b, str> 
     where R: RangeBounds<usize> + SliceIndex<str, Output = str>,
     {
-        Cow::Borrowed(&self.0[r])
+        Cow::Borrowed(&self.0.as_str()[r])
     }
 }
 
-impl<'a> LspAdapter for TestDoc<'a> {
+impl LspAdapter for TestDoc2 {
     fn offset_to_position(&self, offset: usize) -> Option<Position> {
         if offset > self.0.len() {
             return None;
@@ -71,33 +76,5 @@ impl<'a> LspAdapter for TestDoc<'a> {
             ret += b.len() + 1; // 1 for '\n'.
         }
         None
-    }
-}
-
-pub trait QuickEdit {
-    fn edit<S: ToString>(
-        &self,
-        soff: usize,
-        eoff: usize,
-        new_text: S,
-    ) -> TextEdit;
-}
-
-impl<T> QuickEdit for T
-where
-    T: LspAdapter,
-{
-    fn edit<S: ToString>(
-        &self,
-        soff: usize,
-        eoff: usize,
-        new_text: S,
-    ) -> TextEdit {
-        let start = self.offset_to_position(soff).unwrap();
-        let end = self.offset_to_position(eoff).unwrap();
-        TextEdit {
-            range: Range { start, end },
-            new_text: new_text.to_string(),
-        }
     }
 }
