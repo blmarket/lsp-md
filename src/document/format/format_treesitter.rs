@@ -165,7 +165,7 @@ using namespace std;
 
 #[test]
 fn format_should_work() {
-    use super::super::util::TestDoc;
+    use super::super::test_doc::TestDoc;
 
     let doc = TestDoc(BUF);
 

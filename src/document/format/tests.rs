@@ -1,7 +1,7 @@
 use tower_lsp::lsp_types::{Position, Range};
 
 use super::*;
-use crate::document::util::{QuickEdit as _, TestDoc};
+use crate::document::test_doc::{QuickEdit as _, TestDoc};
 
 #[test]
 fn test_format() {
