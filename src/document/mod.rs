@@ -4,6 +4,7 @@ mod document_adapter;
 mod extract_keywords;
 mod find_by_keyword;
 mod format;
+mod incremental_sync;
 #[cfg(test)]
 mod integration_tests;
 mod similar_notes;
