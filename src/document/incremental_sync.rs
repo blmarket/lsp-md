@@ -93,4 +93,79 @@ mod tests {
         
         assert_eq!("안녕 world - 엄하게 live\n", String::from(src));
     }
+
+    #[test]
+    fn insert_beginning_for_rope() {
+        let mut src = Rope::from_str("pay\nload");
+        src = src.apply_change(tower_lsp::lsp_types::TextDocumentContentChangeEvent {
+            range: Some(tower_lsp::lsp_types::Range {
+                start: tower_lsp::lsp_types::Position {
+                    line: 0,
+                    character: 0,
+                },
+                end: tower_lsp::lsp_types::Position {
+                    line: 0,
+                    character: 0,
+                },
+            }),
+            range_length: None,
+            text: "insert ".to_string(),
+        });
+        
+        assert_eq!("insert pay\nload", String::from(src));
+    }
+
+    #[test]
+    fn append_for_rope() {
+        let mut src = Rope::from_str("pay\nload");
+        src = src.apply_change(tower_lsp::lsp_types::TextDocumentContentChangeEvent {
+            range: Some(tower_lsp::lsp_types::Range {
+                start: tower_lsp::lsp_types::Position {
+                    line: 1,
+                    character: 4,
+                },
+                end: tower_lsp::lsp_types::Position {
+                    line: 1,
+                    character: 4,
+                },
+            }),
+            range_length: None,
+            text: "insert".to_string(),
+        });
+        
+        assert_eq!("pay\nloadinsert", String::from(src));
+    }
+
+    #[test]
+    fn replace_whole_for_rope() {
+        let mut src = Rope::from_str("pay\nload");
+        src = src.apply_change(tower_lsp::lsp_types::TextDocumentContentChangeEvent {
+            range: Some(tower_lsp::lsp_types::Range {
+                start: tower_lsp::lsp_types::Position {
+                    line: 0,
+                    character: 0,
+                },
+                end: tower_lsp::lsp_types::Position {
+                    line: 1,
+                    character: 4,
+                },
+            }),
+            range_length: None,
+            text: "insert".to_string(),
+        });
+        
+        assert_eq!("insert", String::from(src));
+    }
+
+    #[test]
+    fn fullsync_for_rope() {
+        let mut src = Rope::from_str("pay\nload");
+        src = src.apply_change(tower_lsp::lsp_types::TextDocumentContentChangeEvent {
+            range: None,
+            range_length: None,
+            text: "insert".to_string(),
+        });
+        
+        assert_eq!("insert", String::from(src));
+    }
 }
