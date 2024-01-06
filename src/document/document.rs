@@ -4,7 +4,6 @@ use std::slice::SliceIndex;
 
 use regex::RegexBuilder;
 use ropey::{Rope, RopeSlice};
-use tower_lsp::lsp_types::Position;
 
 use super::document_adapter::{DocumentLsp, LspAdapter};
 
@@ -32,21 +31,14 @@ impl LspAdapter for Document {
         &self,
         offset: usize,
     ) -> Option<tower_lsp::lsp_types::Position> {
-        let slice = self.rope.byte_slice(0..offset);
-        let row = slice.len_lines() - 1;
-        let col = slice.get_line(row)?.len_chars();
-        Some(Position::new(row as u32, col as u32))
+        self.rope.offset_to_position(offset)
     }
 
     fn position_to_offset(
         &self,
         position: &tower_lsp::lsp_types::Position,
     ) -> Option<usize> {
-        // FIXME: It will be wrong if the line has multi-byte characters.
-        self.rope
-            .try_line_to_char(position.line as usize)
-            .map(|v| v + position.character as usize)
-            .ok()
+        self.rope.position_to_offset(position)
     }
 }
 
