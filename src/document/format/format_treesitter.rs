@@ -23,6 +23,8 @@ impl<'a, T: LspAdapter + SliceAccess> Formatter<'a, T> {
         let mut parser = Parser::new();
         parser.set_language(lang).expect("should set lang");
 
+        // FIXME: Currently tree is built from scratch, but it can be built
+        // incrementally.
         let tree = parser
             .parse(buf.slice(0..).as_bytes(), None)
             .expect("should parse markdown doc");
