@@ -6,7 +6,7 @@ use tower_lsp::lsp_types::{Position, TextDocumentContentChangeEvent};
 
 use super::document::SliceAccess;
 use super::document_adapter::LspAdapter;
-use super::incremental_sync::ApplyEdits;
+use super::incremental_sync::IncrementalSync;
 
 #[derive(Debug, PartialEq)]
 pub struct TestDoc(String);
@@ -35,7 +35,7 @@ impl PartialEq<TestDoc> for &str {
     }
 }
 
-impl ApplyEdits for TestDoc {
+impl IncrementalSync for TestDoc {
     fn apply_change(self, change: TextDocumentContentChangeEvent) -> Self {
         let Some(rng) = change.range else {
             return TestDoc::new(change.text);

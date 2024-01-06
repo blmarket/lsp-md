@@ -3,7 +3,7 @@ use tower_lsp::lsp_types::{TextDocumentContentChangeEvent, TextEdit};
 
 use super::document_adapter::LspAdapter;
 
-pub trait ApplyEdits: where Self: Sized {
+pub trait IncrementalSync: where Self: Sized {
     fn apply_change(self, change: TextDocumentContentChangeEvent) -> Self;
     
     fn apply_changes(
@@ -22,17 +22,8 @@ pub trait ApplyEdits: where Self: Sized {
     }
 }
 
-impl ApplyEdits for Rope {
+impl IncrementalSync for Rope {
     fn apply_change(mut self, change: TextDocumentContentChangeEvent) -> Self {
-        // let Some(rng) = change.range else {
-        //     return TestDoc::new(change.text);
-        // };
-        // let mut ret = String::with_capacity(self.0.len() + change.text.len());
-        // let sp = self.position_to_offset(&rng.start).unwrap();
-        // let ep = self.position_to_offset(&rng.end).unwrap();
-        // ret.push_str(&self.0[..sp]);
-        // ret.push_str(&change.text);
-        // ret.push_str(&self.0[ep..]);
         let Some(rng) = change.range else {
             return Rope::from_str(&change.text);
         };
@@ -50,7 +41,7 @@ impl ApplyEdits for Rope {
 mod tests {
     use ropey::Rope;
 
-    use super::ApplyEdits as _;
+    use super::IncrementalSync as _;
 
     #[test]
     fn apply_change_for_rope() {

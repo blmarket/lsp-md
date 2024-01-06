@@ -1,6 +1,6 @@
 use tower_lsp::lsp_types::{Position, Range};
 
-use crate::document::incremental_sync::ApplyEdits;
+use crate::document::incremental_sync::IncrementalSync;
 use crate::document::test_doc::TestDoc;
 
 use super::super::quick_edit::QuickEdit as _;
