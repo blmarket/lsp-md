@@ -53,12 +53,16 @@ pub trait BasicDocument {
 }
 
 pub trait DocumentExt<'a> {
-    fn title(&'a self, index: usize) -> anyhow::Result<RopeSlice<'a>>;
-    fn text(&'a self, index: usize) -> anyhow::Result<RopeSlice<'a>>;
+    type Output: Into<Cow<'a, str>>;
+    
+    fn title(&'a self, index: usize) -> anyhow::Result<Self::Output>;
+    fn text(&'a self, index: usize) -> anyhow::Result<Self::Output>;
 }
 
 impl<'a> DocumentExt<'a> for Document {
-    fn title(&'a self, index: usize) -> anyhow::Result<RopeSlice<'a>> {
+    type Output = RopeSlice<'a>;
+
+    fn title(&'a self, index: usize) -> anyhow::Result<Self::Output> {
         let section = self
             .sections()
             .get(index)
@@ -66,7 +70,7 @@ impl<'a> DocumentExt<'a> for Document {
         Ok(self.rope.byte_slice(section.title.clone()))
     }
 
-    fn text(&'a self, index: usize) -> anyhow::Result<RopeSlice<'a>> {
+    fn text(&'a self, index: usize) -> anyhow::Result<Self::Output> {
         let section = self
             .sections()
             .get(index)
