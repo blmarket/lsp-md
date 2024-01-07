@@ -66,9 +66,10 @@ impl LspPositionToPoint for LspPosition {
 }
 
 impl IncrementalSync for Formatter {
-    fn apply_change(mut self, change: TextDocumentContentChangeEvent) -> Self {
+    fn apply_change(self, change: TextDocumentContentChangeEvent) -> Self {
         let Some(rng) = change.range else {
-            return Formatter::new(self.buf.apply_change(change));
+            // no range = full text change = creating a new Formatter
+            return Formatter::new(Rope::from_str(&change.text));
         };
         
         let sp = self.buf.position_to_offset(&rng.start).unwrap();
