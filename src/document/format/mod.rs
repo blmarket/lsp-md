@@ -16,3 +16,4 @@ pub trait LspRangeFormat {
 }
 /// A formatter that uses the treesitter library to format documents.
 pub use format_treesitter::Formatter;
+pub use formatter_v2::Formatter as FormatterV2;

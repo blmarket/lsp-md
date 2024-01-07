@@ -1,5 +1,6 @@
 mod bert;
 mod document;
+mod document_v2;
 mod document_adapter;
 mod extract_keywords;
 mod find_by_keyword;

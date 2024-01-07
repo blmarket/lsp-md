@@ -4,7 +4,7 @@ use ropey::Rope;
 use tower_lsp::lsp_types::{TextDocumentContentChangeEvent, Position as LspPosition};
 use tree_sitter::{Parser, Tree, InputEdit, Point};
 
-use crate::document::{incremental_sync::IncrementalSync, document_adapter::LspAdapter as _};
+use crate::document::{incremental_sync::IncrementalSync, document_adapter::LspAdapter, document::SliceAccess};
 
 pub struct Formatter {
     buf: Rope,
@@ -90,6 +90,25 @@ impl IncrementalSync for Formatter {
         };
         
         Formatter::apply_edit(updated_rope, self.tree, input_edit)
+    }
+}
+
+impl LspAdapter for Formatter {
+    fn offset_to_position(&self, offset: usize) -> Option<LspPosition> {
+        self.buf.offset_to_position(offset)
+    }
+
+    fn position_to_offset(&self, position: &LspPosition) -> Option<usize> {
+        self.buf.position_to_offset(position)
+    }
+}
+
+impl SliceAccess for Formatter {
+    fn slice<'a, R: std::ops::RangeBounds<usize> + std::slice::SliceIndex<str, Output = str>>(
+        &'a self,
+        r: R,
+    ) -> std::borrow::Cow<'a, str> {
+        self.buf.byte_slice(r).into()
     }
 }
 
