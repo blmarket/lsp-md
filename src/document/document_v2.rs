@@ -8,7 +8,7 @@ use regex::RegexBuilder;
 use ropey::Rope;
 
 use super::format::FormatterV2;
-use super::document::{SliceAccess, DocumentExt, BasicDocument, Section};
+use super::document::{SliceAccess, BasicDocument, Section};
 use super::document_adapter::{DocumentLsp, LspAdapter};
 
 pub struct Document(FormatterV2, Vec<Section>);
@@ -19,26 +19,6 @@ impl SliceAccess for Document {
         r: R,
     ) -> Cow<'a, str> {
         self.0.slice(r)
-    }
-}
-
-impl<'a> DocumentExt<'a> for Document {
-    type Output = Cow<'a, str>;
-
-    fn title(&'a self, index: usize) -> anyhow::Result<Self::Output> {
-        let section = self
-            .sections()
-            .get(index)
-            .ok_or(anyhow::anyhow!("index out of range"))?;
-        Ok(self.0.slice(section.title.clone()))
-    }
-
-    fn text(&'a self, index: usize) -> anyhow::Result<Self::Output> {
-        let section = self
-            .sections()
-            .get(index)
-            .ok_or(anyhow::anyhow!("index out of range"))?;
-        Ok(self.0.slice(section.range.clone()))
     }
 }
 
@@ -61,6 +41,10 @@ impl BasicDocument for Document {
 impl DocumentLsp for Document {}
 
 impl Document {
+    pub fn parse(text: &str) -> anyhow::Result<Self> {
+        Document::from_str(text)
+    }
+    
     pub fn from_str(text: &str) -> anyhow::Result<Self> {
         let rope = Rope::from_str(&text);
         let re = RegexBuilder::new(r"^##? (.*)$").multi_line(true).build()?;

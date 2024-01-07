@@ -13,7 +13,7 @@ mod test_doc;
 mod quick_edit;
 
 pub use bert::{BertModel, Encoder};
-pub use document::Document;
+pub use document_v2::Document;
 pub use extract_keywords::extract_keywords;
 pub use find_by_keyword::find_by_keyword;
 pub use format::{Formatter as CodeFormatter, LspRangeFormat};
