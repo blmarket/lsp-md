@@ -11,7 +11,7 @@ pub fn find_by_keyword<'a, D>(
     model: &impl Encoder,
     doc: &'a D,
     keyword: &str,
-) -> Vec<ScoredLocation>
+) -> Vec<ScoredLocation<'a>>
 where
     D: DocumentLsp + DocumentExt<'a>,
 {

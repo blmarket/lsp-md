@@ -8,9 +8,9 @@ use super::document_adapter::DocumentLsp;
 use super::Encoder;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ScoredLocation {
+pub struct ScoredLocation<'a> {
     pub score: f32,
-    pub title: String,
+    pub title: Cow<'a, str>,
     pub location: Location,
 }
 
@@ -19,7 +19,7 @@ pub fn find_similar<'a, D>(
     doc: &'a D,
     enc: &impl Encoder,
     pos: &Position,
-) -> Vec<ScoredLocation>
+) -> Vec<ScoredLocation<'a>>
 where
     D: DocumentLsp + DocumentExt<'a>,
 {
