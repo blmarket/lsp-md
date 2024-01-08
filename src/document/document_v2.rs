@@ -37,13 +37,7 @@ impl BasicDocument for Document {
     type Output = Vec<Section>;
 
     fn sections(&self) -> Self::Output {
-        self.1
-            .iter()
-            .map(|v| Section {
-                title: v.title.clone(),
-                range: v.range.clone(),
-            })
-            .collect()
+        self.0.sections()
     }
 }
 

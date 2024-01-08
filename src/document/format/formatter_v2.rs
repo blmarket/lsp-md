@@ -1,14 +1,37 @@
-#![allow(dead_code)]
-
 use ropey::Rope;
 use tower_lsp::lsp_types::{
     Position as LspPosition, TextDocumentContentChangeEvent,
 };
 use tree_sitter::{InputEdit, Parser, Point, Tree};
 
-use crate::document::document::SliceAccess;
+use crate::document::document::{BasicDocument, Section, SliceAccess};
 use crate::document::document_adapter::LspAdapter;
 use crate::document::incremental_sync::IncrementalSync;
+
+impl BasicDocument for Formatter {
+    type Output = Vec<Section>;
+
+    fn sections(&self) -> Self::Output {
+        let mut cursor = self.tree.walk();
+        self.tree
+            .root_node()
+            .children(&mut cursor)
+            .flat_map(|node| {
+                if node.kind() != "section" {
+                    return None;
+                }
+
+                return node.child(0).and_then(|heading| {
+                    heading.named_child(1).and_then(|title_node| {
+                        let title = title_node.byte_range();
+                        let range = node.byte_range();
+                        Some(Section { title, range })
+                    })
+                });
+            })
+            .collect::<Vec<_>>()
+    }
+}
 
 pub struct Formatter {
     buf: Rope,
@@ -201,5 +224,35 @@ mod tests {
         });
 
         debug_walk(updated2.tree.walk());
+    }
+
+    #[test]
+    fn basic_document_sections_should_work() {
+        let src = r#"
+## Title
+
+Some paragraph
+
+### Subsection
+
+Some subsection
+
+---
+
+## Another title
+
+Another paragraph for another note
+"#;
+        let buf = Rope::from_str(&src);
+        let formatter = Formatter::new(buf);
+        let sections = formatter.sections();
+
+        assert_eq!(sections.len(), 2);
+
+        assert_eq!("Title", &src[sections[0].title.clone()]);
+        assert_eq!(1..65, sections[0].range);
+
+        assert_eq!("Another title", &src[sections[1].title.clone()]);
+        assert_eq!(65..118, sections[1].range);
     }
 }
