@@ -167,8 +167,8 @@ using namespace std;
 
 #[test]
 fn format_should_work() {
-use crate::document::incremental_sync::IncrementalSync as _;
-use crate::document::test_doc::TestDoc;
+    use crate::document::incremental_sync::IncrementalSync as _;
+    use crate::document::test_doc::TestDoc;
 
     let doc = TestDoc::new(BUF);
 

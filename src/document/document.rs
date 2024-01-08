@@ -16,12 +16,14 @@ pub struct Section {
 }
 
 pub trait BasicDocument {
-    fn sections(&self) -> &[Section];
+    type Output: AsRef<[Section]>;
+
+    fn sections(&self) -> Self::Output;
 }
 
 pub trait DocumentExt<'a> {
     type Output: Into<Cow<'a, str>>;
-    
+
     fn title(&'a self, index: usize) -> anyhow::Result<Self::Output>;
     fn text(&'a self, index: usize) -> anyhow::Result<Self::Output>;
 }
@@ -30,10 +32,10 @@ impl<'a, T: BasicDocument + SliceAccess> DocumentExt<'a> for T {
     type Output = Cow<'a, str>;
 
     fn title(&'a self, index: usize) -> anyhow::Result<Self::Output> {
-        Ok(self.slice(self.sections()[index].title.clone()))
+        Ok(self.slice(self.sections().as_ref()[index].title.clone()))
     }
 
     fn text(&'a self, index: usize) -> anyhow::Result<Self::Output> {
-        Ok(self.slice(self.sections()[index].range.clone()))
+        Ok(self.slice(self.sections().as_ref()[index].range.clone()))
     }
 }

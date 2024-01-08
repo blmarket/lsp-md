@@ -6,10 +6,11 @@ use std::slice::SliceIndex;
 
 use regex::RegexBuilder;
 use ropey::Rope;
+use tower_lsp::lsp_types::Position;
 
-use super::format::FormatterV2;
-use super::document::{SliceAccess, BasicDocument, Section};
+use super::document::{BasicDocument, Section, SliceAccess};
 use super::document_adapter::{DocumentLsp, LspAdapter};
+use super::format::FormatterV2;
 
 pub struct Document(FormatterV2, Vec<Section>);
 
@@ -23,18 +24,26 @@ impl SliceAccess for Document {
 }
 
 impl LspAdapter for Document {
-    fn offset_to_position(&self, offset: usize) -> Option<tower_lsp::lsp_types::Position> {
+    fn offset_to_position(&self, offset: usize) -> Option<Position> {
         self.0.offset_to_position(offset)
     }
 
-    fn position_to_offset(&self, position: &tower_lsp::lsp_types::Position) -> Option<usize> {
+    fn position_to_offset(&self, position: &Position) -> Option<usize> {
         self.0.position_to_offset(position)
     }
 }
 
 impl BasicDocument for Document {
-    fn sections(&self) -> &[Section] {
-        &self.1
+    type Output = Vec<Section>;
+
+    fn sections(&self) -> Self::Output {
+        self.1
+            .iter()
+            .map(|v| Section {
+                title: v.title.clone(),
+                range: v.range.clone(),
+            })
+            .collect()
     }
 }
 
@@ -44,7 +53,7 @@ impl Document {
     pub fn parse(text: &str) -> anyhow::Result<Self> {
         Document::from_str(text)
     }
-    
+
     pub fn from_str(text: &str) -> anyhow::Result<Self> {
         let rope = Rope::from_str(&text);
         let re = RegexBuilder::new(r"^##? (.*)$").multi_line(true).build()?;
@@ -66,7 +75,7 @@ impl Document {
                 range: prev_title.start..text.len(),
             });
         }
-        
+
         Ok(Self(FormatterV2::new(rope), sections))
     }
 }

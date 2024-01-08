@@ -30,6 +30,7 @@ where
     let current_section_embedding = enc.encode(text).unwrap();
     let mut sections: Vec<_> = doc
         .sections()
+        .as_ref()
         .into_iter()
         .enumerate()
         .map(|(i, _)| {
@@ -65,7 +66,7 @@ pub fn query_section_titles<D>(doc: &D) -> Vec<Range>
 where
     D: DocumentLsp,
 {
-    (0..doc.sections().len())
+    (0..doc.sections().as_ref().len())
         .map(|s| doc.section_to_title_range(s).unwrap())
         .collect()
 }

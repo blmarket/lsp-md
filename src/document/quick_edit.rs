@@ -1,4 +1,4 @@
-use tower_lsp::lsp_types::{TextEdit, Range};
+use tower_lsp::lsp_types::{Range, TextEdit};
 
 use super::document_adapter::LspAdapter;
 

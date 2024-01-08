@@ -52,8 +52,9 @@ impl IncrementalSync for TestDoc {
 }
 
 impl SliceAccess for TestDoc {
-    fn slice<'b, R>(&'b self, r: R) -> Cow<'b, str> 
-    where R: RangeBounds<usize> + SliceIndex<str, Output = str>,
+    fn slice<'b, R>(&'b self, r: R) -> Cow<'b, str>
+    where
+        R: RangeBounds<usize> + SliceIndex<str, Output = str>,
     {
         Cow::Borrowed(&self.0.as_str()[r])
     }

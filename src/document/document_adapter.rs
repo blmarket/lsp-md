@@ -12,6 +12,7 @@ pub trait DocumentLsp: BasicDocument + LspAdapter {
     fn position_to_section(&self, position: &Position) -> Option<usize> {
         let offset = self.position_to_offset(position)?;
         self.sections()
+            .as_ref()
             .iter()
             .enumerate()
             .find(|(_, v)| v.range.contains(&offset))
@@ -19,7 +20,7 @@ pub trait DocumentLsp: BasicDocument + LspAdapter {
     }
 
     fn section_to_title_range(&self, index: usize) -> Option<Range> {
-        self.sections().get(index).map(|v| {
+        self.sections().as_ref().get(index).map(|v| {
             let start = self.offset_to_position(v.title.start).unwrap();
             let end = self.offset_to_position(v.title.end).unwrap();
             Range::new(start, end)
@@ -27,7 +28,7 @@ pub trait DocumentLsp: BasicDocument + LspAdapter {
     }
 
     fn section_titles(&self) -> Vec<Range> {
-        (0..self.sections().len())
+        (0..self.sections().as_ref().len())
             .map(|s| self.section_to_title_range(s).unwrap())
             .collect()
     }
@@ -49,12 +50,14 @@ impl LspAdapter for Rope {
         position: &tower_lsp::lsp_types::Position,
     ) -> Option<usize> {
         let line_offset = self.line_to_byte(position.line as usize);
-        let char_offset = self.line(position.line as usize).slice(..position.character as usize).len_bytes();
-        
+        let char_offset = self
+            .line(position.line as usize)
+            .slice(..position.character as usize)
+            .len_bytes();
+
         Some(line_offset + char_offset)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -93,13 +96,13 @@ Content of section 2...
         assert_eq!(9, doc.position_to_offset(&Position::new(1, 8)).unwrap());
         assert_eq!(32, doc.position_to_offset(&Position::new(7, 0)).unwrap());
     }
-    
+
     #[test]
     fn test_offset_unicode() {
         use super::LspAdapter;
-        
+
         let src = Rope::from_str("한글 텍스트\n 좋아요 좋아요\n");
-        
+
         let pairs = vec![
             (0, Position::new(0, 0)),
             (6, Position::new(0, 2)),
@@ -109,7 +112,7 @@ Content of section 2...
             (17, Position::new(1, 0)),
             (18, Position::new(1, 1)),
         ];
-        
+
         for (offset, pos) in pairs {
             assert_eq!(pos, src.offset_to_position(offset).unwrap());
             assert_eq!(offset, src.position_to_offset(&pos).unwrap());

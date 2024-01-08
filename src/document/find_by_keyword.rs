@@ -19,6 +19,7 @@ where
         model.encode(keyword).expect("should calculate embedding");
     let mut candidates = doc
         .sections()
+        .as_ref()
         .into_iter()
         .enumerate()
         .map(|(i, _)| {

@@ -1,16 +1,16 @@
 mod bert;
 mod document;
-mod document_v2;
 mod document_adapter;
+mod document_v2;
 mod extract_keywords;
 mod find_by_keyword;
 mod format;
 mod incremental_sync;
 #[cfg(test)]
 mod integration_tests;
+mod quick_edit;
 mod similar_notes;
 mod test_doc;
-mod quick_edit;
 
 pub use bert::{BertModel, Encoder};
 pub use document_v2::Document;

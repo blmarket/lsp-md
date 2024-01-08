@@ -1,9 +1,9 @@
 mod format_treesitter;
+mod formatter_v2;
 mod processors;
 #[cfg(test)]
 mod tests;
 mod treesitter;
-mod formatter_v2;
 
 use processors::{process_list_items, process_section};
 use tower_lsp::lsp_types::{Range, TextEdit};

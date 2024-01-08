@@ -1,10 +1,14 @@
 #![allow(dead_code)]
 
 use ropey::Rope;
-use tower_lsp::lsp_types::{TextDocumentContentChangeEvent, Position as LspPosition};
-use tree_sitter::{Parser, Tree, InputEdit, Point};
+use tower_lsp::lsp_types::{
+    Position as LspPosition, TextDocumentContentChangeEvent,
+};
+use tree_sitter::{InputEdit, Parser, Point, Tree};
 
-use crate::document::{incremental_sync::IncrementalSync, document_adapter::LspAdapter, document::SliceAccess};
+use crate::document::document::SliceAccess;
+use crate::document::document_adapter::LspAdapter;
+use crate::document::incremental_sync::IncrementalSync;
 
 pub struct Formatter {
     buf: Rope,
@@ -27,10 +31,10 @@ impl Formatter {
                 None,
             )
             .expect("should parse doc");
-        
+
         Self { buf, tree }
     }
-    
+
     fn apply_edit(updated: Rope, mut old_tree: Tree, edit: InputEdit) -> Self {
         let lang = tree_sitter_md::language();
         let mut parser = Parser::new();
@@ -71,15 +75,15 @@ impl IncrementalSync for Formatter {
             // no range = full text change = creating a new Formatter
             return Formatter::new(Rope::from_str(&change.text));
         };
-        
+
         let sp = self.buf.position_to_offset(&rng.start).unwrap();
         let old_ep = self.buf.position_to_offset(&rng.end).unwrap();
         let new_ep = sp + change.text.as_bytes().len();
-        
+
         let updated_rope = self.buf.apply_change(change);
-        
+
         let new_end_position = updated_rope.offset_to_position(new_ep).unwrap();
-        
+
         let input_edit = InputEdit {
             start_byte: sp,
             old_end_byte: old_ep,
@@ -88,7 +92,7 @@ impl IncrementalSync for Formatter {
             old_end_position: rng.end.to_point(),
             new_end_position: new_end_position.to_point(),
         };
-        
+
         Formatter::apply_edit(updated_rope, self.tree, input_edit)
     }
 }
@@ -104,7 +108,11 @@ impl LspAdapter for Formatter {
 }
 
 impl SliceAccess for Formatter {
-    fn slice<'a, R: std::ops::RangeBounds<usize> + std::slice::SliceIndex<str, Output = str>>(
+    fn slice<
+        'a,
+        R: std::ops::RangeBounds<usize>
+            + std::slice::SliceIndex<str, Output = str>,
+    >(
         &'a self,
         r: R,
     ) -> std::borrow::Cow<'a, str> {
@@ -114,10 +122,10 @@ impl SliceAccess for Formatter {
 
 #[cfg(test)]
 mod tests {
-    use crate::document::format::treesitter::debug_walk;
+    use ropey::Rope;
 
     use super::*;
-    use ropey::Rope;
+    use crate::document::format::treesitter::debug_walk;
 
     #[test]
     fn new_works() {
@@ -128,10 +136,12 @@ mod tests {
 
     #[test]
     fn partial_update_should_work() {
-        let buf = Rope::from("## Title\n\nSome paragraph\n\n```\nlet a = 1;\n```\n\n");
+        let buf = Rope::from(
+            "## Title\n\nSome paragraph\n\n```\nlet a = 1;\n```\n\n",
+        );
         let formatter = Formatter::new(buf);
         debug_walk(formatter.tree.walk());
-        
+
         let updated = formatter.apply_change(TextDocumentContentChangeEvent {
             range: Some(tower_lsp::lsp_types::Range {
                 start: tower_lsp::lsp_types::Position {
@@ -146,17 +156,18 @@ mod tests {
             range_length: None,
             text: "".to_string(),
         });
-        
+
         debug_walk(updated.tree.walk());
     }
 
     #[test]
     fn partial_update_should_handle_big_tree_changes() {
-        let src = "## Title\n\n".to_string() + &"Some paragraph\n\n".repeat(10000);
+        let src =
+            "## Title\n\n".to_string() + &"Some paragraph\n\n".repeat(10000);
         let buf = Rope::from_str(&src);
         let formatter = Formatter::new(buf);
         debug_walk(formatter.tree.walk());
-        
+
         let updated = formatter.apply_change(TextDocumentContentChangeEvent {
             range: Some(tower_lsp::lsp_types::Range {
                 start: tower_lsp::lsp_types::Position {
@@ -171,7 +182,7 @@ mod tests {
             range_length: None,
             text: "```\n".to_string(),
         });
-        
+
         debug_walk(updated.tree.walk());
 
         let updated2 = updated.apply_change(TextDocumentContentChangeEvent {
@@ -188,7 +199,7 @@ mod tests {
             range_length: None,
             text: "```\n".to_string(),
         });
-        
+
         debug_walk(updated2.tree.walk());
     }
 }
